@@ -765,6 +765,9 @@ void cudaF_vec_soft_max(int Gr, int Bl, float* v, int dim);
 void cudaD_vec_sum(int Gr, int Bl, double* v, double* value, int dim, int inc);
 void cudaF_vec_sum(int Gr, int Bl, float* v, float* value, int dim, int inc);
 
+// Modified version for adaptation!!!
+void cudaD_select_one_from_id_row(int Gr, int Bl, const double *Id, double *dst, MatrixDim d, int stride_id);
+void cudaF_select_one_from_id_row(int Gr, int Bl, const float *Id, float *dst, MatrixDim d, int stride_id);
 
 void cuda_compress_int16(dim3 Gr, dim3 Bl, const BaseFloat *src,
                           MatrixDim dim, int16_t *dest,

@@ -666,6 +666,9 @@ class MatrixBase {
                        const MatrixBase<Real>& B,
                        const MatrixBase<Real>& C);
 
+  /// Modified version for adaptation!!!
+  void SelectOneFromIdRow(const MatrixBase<Real>& Id);
+
   /// A version of AddMatMat specialized for when the second argument
   /// contains a lot of zeroes.
   void AddMatSmat(const Real alpha,

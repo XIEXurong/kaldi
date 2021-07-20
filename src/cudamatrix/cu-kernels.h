@@ -1490,6 +1490,10 @@ inline void cuda_vec_sum(int Gr, int Bl, float* v, float* value, int dim,
   cudaF_vec_sum(Gr, Bl, v, value, dim, inc);
 }
 
+// Modified version for adaptation!!!
+inline void cuda_select_one_from_id_row(int Gr, int Bl, const double *Id, double *dst, MatrixDim d, int stride_id) { cudaD_select_one_from_id_row(Gr,Bl,Id,dst,d,stride_id); }
+inline void cuda_select_one_from_id_row(int Gr, int Bl, const float *Id, float *dst, MatrixDim d, int stride_id) { cudaF_select_one_from_id_row(Gr,Bl,Id,dst,d,stride_id); }
+
 // Compresses the matrix in 'src' to 'dest', retaining only zero-one
 // information (1 if the value is >0, 0 otherwise)
 inline void cuda_mat_compress_sign(dim3 Gr, dim3 Bl, const BaseFloat *src,

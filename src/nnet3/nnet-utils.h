@@ -308,6 +308,10 @@ void CollapseModel(const CollapseModelConfig &config,
        DropoutMaskComponent or GeneralDropoutComponent whose
        names match the given <name-pattern> (e.g. lstm*).  <name-pattern> defaults to "*".
 
+	set-temperature [name=<name-pattern>] temperature=<temperature> // Modified version for adaptation!!!
+       Sets the temperatures for any components of type GumbelSoftmax whose
+       names match the given <name-pattern> (e.g. lstm*).  <name-pattern> defaults to "*".
+
     apply-svd name=<name-pattern> bottleneck-dim=<dim> energy-threshold=<threshold> shrinkage-threshold=<s>
        Locates all components with names matching <name-pattern>, which are
        type AffineComponent or child classes thereof.  If <dim> is

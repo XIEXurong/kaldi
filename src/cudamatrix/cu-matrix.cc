@@ -1020,6 +1020,32 @@ void CuMatrixBase<Real>::AddSmat(Real alpha, const CuSparseMatrix<Real> &A,
   }
 }
 
+
+template<typename Real> /// Modified version for adaptation!!!
+void CuMatrixBase<Real>::SelectOneFromIdRow(const CuMatrixBase<Real> &Id) {
+#if HAVE_CUDA == 1
+  if (CuDevice::Instantiate().Enabled()) {
+    CuTimer tim;
+
+    KALDI_ASSERT(1 == Id.NumCols());
+    if (num_rows_ == 0) return;
+	this->SetZero();
+
+    int dimBlock(CU1DBLOCK);
+	int dimGrid(n_blocks(NumRows(), CU1DBLOCK));
+
+    cuda_select_one_from_id_row(dimGrid, dimBlock, Id.data_, data_, Dim(), Id.Stride());
+    CU_SAFE_CALL(cudaGetLastError());
+
+    CuDevice::Instantiate().AccuProfile(__func__, tim);
+  } else
+#endif
+  {
+    Mat().SelectOneFromIdRow(Id.Mat());
+  }
+}
+
+
 template<typename Real>
 void CuMatrixBase<Real>::AddSmatMat(Real alpha, const CuSparseMatrix<Real> &A,
                                     MatrixTransposeType transA,

@@ -654,6 +654,7 @@ class NonlinearComponent: public Component {
   friend class SoftmaxComponent;
   friend class LogSoftmaxComponent;
   friend class RectifiedLinearComponent;
+  friend class ExpComponent; // Modified version for adaptation!!!
 
   // This function updates the stats "value_sum_", "deriv_sum_", and
   // count_. (If deriv == NULL, it won't update "deriv_sum_").

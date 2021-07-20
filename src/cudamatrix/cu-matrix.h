@@ -519,6 +519,9 @@ class CuMatrixBase {
   void AddSmat(Real alpha, const CuSparseMatrix<Real> &A,
               MatrixTransposeType trans = kNoTrans);
 
+  /// Modified version for adaptation!!!
+  void SelectOneFromIdRow(const CuMatrixBase<Real>& Id);
+
   /// (*this) = alpha * op(A) * B + beta * (*this), where A is sparse.
   /// Multiplication of sparse with dense matrix.  See also AddMatSmat.
   /// Note: we recommend, for greatest efficiency, that transA be kNoTrans.

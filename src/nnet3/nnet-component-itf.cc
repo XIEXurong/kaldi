@@ -189,6 +189,88 @@ Component* Component::NewComponentOfType(const std::string &component_type) {
     ans = new OutputGruNonlinearityComponent();
   } else if (component_type == "ScaleAndOffsetComponent") {
     ans = new ScaleAndOffsetComponent();
+  } else if (component_type == "NormalRandComponent") { // Modified version for adaptation!!!
+    ans = new NormalRandComponent();
+  } else if (component_type == "NormalRandFComponent") { ///////////////////
+    ans = new NormalRandFComponent();
+  } else if (component_type == "DropoutMaskSimpleComponent") { ///////////////////
+    ans = new DropoutMaskSimpleComponent();
+  } else if (component_type == "RandSelectNComponent") { ///////////////////
+    ans = new RandSelectNComponent();
+  } else if (component_type == "NormalRandMultiSampleComponent") { ///////////////////
+    ans = new NormalRandMultiSampleComponent();
+  } else if (component_type == "TestZeroComponent") { ///////////////////
+    ans = new TestZeroComponent();
+  } else if (component_type == "CopyNComponent") { ///////////////////
+    ans = new CopyNComponent();
+  } else if (component_type == "CopyNPerDimComponent") { ///////////////////
+    ans = new CopyNPerDimComponent();
+  } else if (component_type == "DimRangeComponent") { ///////////////////
+    ans = new DimRangeComponent();
+  } else if (component_type == "MinValueComponent") { ///////////////////
+    ans = new MinValueComponent();
+  } else if (component_type == "ExpComponent") { ///////////////////
+    ans = new ExpComponent();
+  } else if (component_type == "LogComponent") { ///////////////////
+    ans = new LogComponent();
+  } else if (component_type == "SoftReLUComponent") { ///////////////////
+    ans = new SoftReLUComponent();
+  } else if (component_type == "FloorReLUComponent") { ///////////////////
+    ans = new FloorReLUComponent();
+  } else if (component_type == "KLGaussianComponent") { ///////////////////
+    ans = new KLGaussianComponent();
+  } else if (component_type == "KLGaussianLogStdComponent") { ///////////////////
+    ans = new KLGaussianLogStdComponent();
+  } else if (component_type == "BayesVecKLGaussianLogStdComponent") { ///////////////////
+    ans = new BayesVecKLGaussianLogStdComponent();
+  } else if (component_type == "BayesVecKLGaussianComponent") { ///////////////////
+    ans = new BayesVecKLGaussianComponent();
+  } else if (component_type == "BayesVecKLGaussianFComponent") { ///////////////////
+    ans = new BayesVecKLGaussianFComponent();
+  } else if (component_type == "BayesVecKLGaussianVarComponent") { ///////////////////
+    ans = new BayesVecKLGaussianVarComponent();
+  } else if (component_type == "InputVectorLinearComponent") { ///////////////////
+    ans = new InputVectorLinearComponent();
+  } else if (component_type == "BayesAffineComponent") { ///////////////////
+    ans = new BayesAffineComponent();
+  } else if (component_type == "NaturalGradientBayesAffineComponent") { ///////////////////
+    ans = new NaturalGradientBayesAffineComponent();
+  } else if (component_type == "BatchNormTestComponent") { ///////////////////
+    ans = new BatchNormTestComponent();
+  } else if (component_type == "LinearSelectColComponent") { ///////////////////
+    ans = new LinearSelectColComponent();
+  } else if (component_type == "VecL2NormComponent") { ///////////////////
+    ans = new VecL2NormComponent();
+  } else if (component_type == "VeclogNormComponent") { ///////////////////
+    ans = new VeclogNormComponent();
+  } else if (component_type == "PnormSumBlockComponent") { ///////////////////
+    ans = new PnormSumBlockComponent();
+  } else if (component_type == "WeightSumBlockComponent") { ///////////////////
+    ans = new WeightSumBlockComponent();
+  } else if (component_type == "WeightSumBlockFixComponent") { ///////////////////
+    ans = new WeightSumBlockFixComponent();
+  } else if (component_type == "WeightSumBlockRandomComponent") { ///////////////////
+    ans = new WeightSumBlockRandomComponent();
+  } else if (component_type == "SoftmaxKLComponent") { ///////////////////
+    ans = new SoftmaxKLComponent();
+  } else if (component_type == "SumOneKLComponent") { ///////////////////
+    ans = new SumOneKLComponent();
+  } else if (component_type == "BLHUCGMMComponent") { ///////////////////
+    ans = new BLHUCGMMComponent();
+  } else if (component_type == "KLAdaptComponent") { ///////////////////
+    ans = new KLAdaptComponent();
+  } else if (component_type == "GumbelSoftmax") { ///////////////////
+    ans = new GumbelSoftmax();
+  } else if (component_type == "SoftmaxKLPriorComponent") { ///////////////////
+    ans = new SoftmaxKLPriorComponent();
+  } else if (component_type == "PriorSelectKLGaussianComponent") { ///////////////////
+    ans = new PriorSelectKLGaussianComponent();
+  } else if (component_type == "InvertComponent") { ///////////////////
+    ans = new InvertComponent();
+  } else if (component_type == "SpecMaskOnlineComponent") { ///////////////////
+    ans = new SpecMaskOnlineComponent();
+  } else if (component_type == "FramewiseLinearComponent") { ///////////////////
+    ans = new FramewiseLinearComponent();
   }
   if (ans != NULL) {
     KALDI_ASSERT(component_type == ans->Type());

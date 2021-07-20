@@ -1761,6 +1761,18 @@ struct TransReduceOp<LPNORM, Real> {
   }
 };
 
+// Modified version for adaptation!!!
+template<typename Real>
+__global__
+static void _select_one_from_id_row(const Real* Id, Real* dst, MatrixDim d, int stride_id) {
+  int32_cuda r = blockIdx.x * blockDim.x + threadIdx.x;
+  if (r < d.rows) {
+    int32_cuda id_index = r*stride_id,
+			   index = (int32_cuda) Id[id_index] + r*d.stride;
+	dst[index] = 1;
+  }
+}
+
 // Vector reduce.
 template<EnumTransformReduce TransReduceType, typename Real>
 __global__
@@ -5721,6 +5733,17 @@ void cudaF_add_smat_trans(dim3 Gr, dim3 Bl, float* mat, MatrixDim mat_dim,
   _add_smat_trans<<<Gr, Bl>>>(mat, mat_dim, alpha, smat_row_ptr, smat_col_idx,
                               smat_val);
 }
+
+
+// Modified version for adaptation!!!
+void cudaF_select_one_from_id_row(int Gr, int Bl, const float *Id, float *dst, MatrixDim d, int stride_id) {
+  _select_one_from_id_row<<<Gr,Bl>>>(Id,dst,d, stride_id);
+}
+// Modified version for adaptation!!!
+void cudaD_select_one_from_id_row(int Gr, int Bl, const double *Id, double *dst, MatrixDim d, int stride_id) {
+  _select_one_from_id_row<<<Gr,Bl>>>(Id,dst,d, stride_id);
+}
+
 
 void cuda_compress_uint8_sign(dim3 Gr, dim3 Bl, const BaseFloat *src, MatrixDim dim,
                               unsigned char *dest, int dest_stride) {

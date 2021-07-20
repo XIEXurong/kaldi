@@ -1412,6 +1412,30 @@ void ReadEditConfig(std::istream &edit_config_is, Nnet *nnet) {
       }
       KALDI_LOG << "Set dropout proportions for "
                 << num_dropout_proportions_set << " components.";
+    } else if (directive == "set-temperature") {  // Modified version for adaptation!!!
+      std::string name_pattern = "*";
+      // name_pattern defaults to '*' if none is given.  This pattern
+      // matches names of components, not nodes.
+      config_line.GetValue("name", &name_pattern);
+      BaseFloat temperature = -1;
+      if (!config_line.GetValue("temperature", &temperature)) {
+        KALDI_ERR << "In edits-config, expected temperature to be set in line: "
+                  << config_line.WholeLine();
+      }
+      int32 num_temperature_set = 0;
+      for (int32 c = 0; c < nnet->NumComponents(); c++) {
+        if (NameMatchesPattern(nnet->GetComponentName(c).c_str(),
+                               name_pattern.c_str())) {
+          GumbelSoftmax *gumbel_softmax_component =
+             dynamic_cast<GumbelSoftmax*>(nnet->GetComponent(c));
+          if (gumbel_softmax_component != NULL) {
+            gumbel_softmax_component->SetTemperature(temperature);
+            num_temperature_set++;
+          }
+        }
+      }
+      KALDI_LOG << "Set temperatures for "
+                << num_temperature_set << " components.";
     } else if (directive == "apply-svd") {
       std::string name_pattern;
       int32 bottleneck_dim = -1;

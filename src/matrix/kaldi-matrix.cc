@@ -208,6 +208,19 @@ void MatrixBase<Real>::SetMatMatDivMat(const MatrixBase<Real>& A,
 }
 
 
+
+/// Modified version for adaptation!!!
+template<typename Real>
+void MatrixBase<Real>::SelectOneFromIdRow(const MatrixBase<Real>& Id) {
+  KALDI_ASSERT(1 == Id.NumCols());
+  this->SetZero();
+  for (int32 r = 0; r < NumRows(); r++) { // each frame...
+	int32 i = (int32) Id(r, 0);
+	(*this)(r, i) = 1;
+  }
+}
+
+
 template<typename Real>
 void MatrixBase<Real>::CopyLowerToUpper() {
   KALDI_ASSERT(num_rows_ == num_cols_);

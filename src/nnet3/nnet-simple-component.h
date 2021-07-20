@@ -2064,6 +2064,2075 @@ class CompositeComponent: public UpdatableComponent {
 };
 
 
+// Modified version for adaptation!!!
+
+//////////
+
+/**
+   NormalRandComponent just samples from a std normal dist, omitting the input:
+
+      dim               E.g. dim=1024.  Required.
+*/
+class NormalRandComponent: public RandomComponent {
+ public:
+  void Init(int32 dim, int32 input_dim, bool rand_per_frame);
+  NormalRandComponent(int32 dim, int32 input_dim, bool rand_per_frame) {
+    Init(dim, input_dim, rand_per_frame);
+  }
+  NormalRandComponent(): dim_(0), input_dim_(0), rand_per_frame_(false) { }
+  explicit NormalRandComponent(const NormalRandComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_), rand_per_frame_(other.rand_per_frame_) { }
+  virtual std::string Type() const { return "NormalRandComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new NormalRandComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new NormalRandComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  bool rand_per_frame_;
+  
+  NormalRandComponent &operator = (const NormalRandComponent &other); // Disallow.
+};
+
+//////////
+
+/**
+   NormalRandFComponent just samples from a std normal dist, omitting the input:
+
+      dim               E.g. dim=1024.  Required.
+*/
+class NormalRandFComponent: public RandomComponent {
+ public:
+  void Init(int32 dim, int32 input_dim, bool rand_per_frame);
+  NormalRandFComponent(int32 dim, int32 input_dim, bool rand_per_frame) {
+    Init(dim, input_dim, rand_per_frame);
+  }
+  NormalRandFComponent(): dim_(0), input_dim_(0), rand_per_frame_(false) { }
+  explicit NormalRandFComponent(const NormalRandFComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_), rand_per_frame_(other.rand_per_frame_) { }
+  virtual std::string Type() const { return "NormalRandFComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new NormalRandFComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new NormalRandFComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  bool rand_per_frame_;
+  
+  NormalRandFComponent &operator = (const NormalRandFComponent &other); // Disallow.
+};
+
+
+//////////
+
+class DropoutMaskSimpleComponent: public RandomComponent {
+ public:
+  void Init(int32 dim, int32 input_dim, bool rand_per_frame, BaseFloat rand_num);
+  DropoutMaskSimpleComponent(int32 dim, int32 input_dim, bool rand_per_frame, BaseFloat rand_num) {
+    Init(dim, input_dim, rand_per_frame, rand_num);
+  }
+  DropoutMaskSimpleComponent(): dim_(0), input_dim_(0), rand_per_frame_(false), rand_num_(0.5) { }
+  explicit DropoutMaskSimpleComponent(const DropoutMaskSimpleComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_), rand_per_frame_(other.rand_per_frame_), rand_num_(other.rand_num_) { }
+  virtual std::string Type() const { return "DropoutMaskSimpleComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new DropoutMaskSimpleComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new DropoutMaskSimpleComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  bool rand_per_frame_;
+  BaseFloat rand_num_;
+  
+  DropoutMaskSimpleComponent &operator = (const DropoutMaskSimpleComponent &other); // Disallow.
+};
+
+//////////
+
+class RandSelectNComponent: public RandomComponent {
+ public:
+  void Init(int32 dim, int32 input_dim, bool rand_per_frame, int32 rand_num);
+  RandSelectNComponent(int32 dim, int32 input_dim, bool rand_per_frame, int32 rand_num) {
+    Init(dim, input_dim, rand_per_frame, rand_num);
+  }
+  RandSelectNComponent(): dim_(0), input_dim_(0), rand_per_frame_(false), rand_num_(1) { }
+  explicit RandSelectNComponent(const RandSelectNComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_), rand_per_frame_(other.rand_per_frame_), rand_num_(other.rand_num_) { }
+  virtual std::string Type() const { return "RandSelectNComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new RandSelectNComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new RandSelectNComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  bool rand_per_frame_;
+  int32 rand_num_;
+  
+  RandSelectNComponent &operator = (const RandSelectNComponent &other); // Disallow.
+};
+
+//////////
+
+/**
+   NormalRandMultiSampleComponent just samples from a std normal dist, omitting the input:
+
+      dim               E.g. dim=1024.  Required.
+*/
+class NormalRandMultiSampleComponent: public RandomComponent {
+ public:
+  void Init(int32 dim, int32 input_dim, bool rand_per_frame, bool test_time_sample);
+  NormalRandMultiSampleComponent(int32 dim, int32 input_dim, bool rand_per_frame, bool test_time_sample) {
+    Init(dim, input_dim, rand_per_frame, test_time_sample);
+  }
+  NormalRandMultiSampleComponent(): dim_(0), input_dim_(0), rand_per_frame_(false), test_time_sample_(false) { }
+  explicit NormalRandMultiSampleComponent(const NormalRandMultiSampleComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_), rand_per_frame_(other.rand_per_frame_), test_time_sample_(other.test_time_sample_) { }
+  virtual std::string Type() const { return "NormalRandMultiSampleComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new NormalRandMultiSampleComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new NormalRandMultiSampleComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  bool rand_per_frame_;
+  bool test_time_sample_;
+  
+  NormalRandMultiSampleComponent &operator = (const NormalRandMultiSampleComponent &other); // Disallow.
+};
+
+//////////
+
+class TestZeroComponent: public RandomComponent {
+ public:
+  void Init(int32 dim, int32 input_dim);
+  TestZeroComponent(int32 dim, int32 input_dim) {
+    Init(dim, input_dim);
+  }
+  TestZeroComponent(): dim_(0), input_dim_(0) { }
+  explicit TestZeroComponent(const TestZeroComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_) { }
+  virtual std::string Type() const { return "TestZeroComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new TestZeroComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new TestZeroComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  
+  TestZeroComponent &operator = (const TestZeroComponent &other); // Disallow.
+};
+
+//////////
+
+class CopyNComponent: public Component {
+ public:
+  explicit CopyNComponent(const CopyNComponent &other);
+  CopyNComponent() { }
+  virtual std::string Type() const { return "CopyNComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateAdds|kBackpropAdds;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new CopyNComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  CopyNComponent &operator = (const CopyNComponent &other); // Disallow.
+};
+
+
+//////////
+
+class CopyNPerDimComponent: public Component {
+ public:
+  explicit CopyNPerDimComponent(const CopyNPerDimComponent &other);
+  CopyNPerDimComponent() { }
+  virtual std::string Type() const { return "CopyNPerDimComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateAdds|kBackpropAdds;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new CopyNPerDimComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  int32 copy_num_;
+  CopyNPerDimComponent &operator = (const CopyNPerDimComponent &other); // Disallow.
+};
+
+//////////
+
+class DimRangeComponent: public Component {
+ public:
+  explicit DimRangeComponent(const DimRangeComponent &other);
+  DimRangeComponent() { }
+  virtual std::string Type() const { return "DimRangeComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new DimRangeComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 input_dim_;
+  int32 output_dim_;
+  int32 dim_offset_;
+  DimRangeComponent &operator = (const DimRangeComponent &other); // Disallow.
+};
+
+
+//////////
+
+/**
+   MinValueComponent just minimizes a vector of values.  Config parameters:
+
+      dim               E.g. dim=1.  Required.
+      scale    Defaults to 1.0. 
+*/
+class MinValueComponent: public Component {
+ public:
+  explicit MinValueComponent(const MinValueComponent &other):
+      dim_(other.dim_), scale_(other.scale_) { }
+  MinValueComponent() { }
+  virtual std::string Type() const { return "MinValueComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateInPlace;
+  }
+  virtual int32 InputDim() const { return dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new MinValueComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new MinValueComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  BaseFloat scale_;
+
+  MinValueComponent &operator = (const MinValueComponent &other); // Disallow.
+};
+
+
+//////////
+
+class ExpComponent: public NonlinearComponent {
+ public:
+  explicit ExpComponent(const ExpComponent &other): NonlinearComponent(other) { }
+  ExpComponent() { }
+  virtual std::string Type() const { return "ExpComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsOutput|kPropagateInPlace|kStoresStats;
+  }
+  virtual Component* Copy() const { return new ExpComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void StoreStats(const CuMatrixBase<BaseFloat> &in_value,
+                          const CuMatrixBase<BaseFloat> &out_value,
+                          void *memo);
+ private:
+
+  ExpComponent &operator = (const ExpComponent &other); // Disallow.
+};
+
+//////////
+
+class LogComponent: public NonlinearComponent {
+ public:
+  explicit LogComponent(const LogComponent &other): NonlinearComponent(other) { }
+  LogComponent() { }
+  virtual std::string Type() const { return "LogComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kPropagateInPlace|kStoresStats;
+  }
+  virtual Component* Copy() const { return new LogComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, //out_value
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void StoreStats(const CuMatrixBase<BaseFloat> &in_value,
+                          const CuMatrixBase<BaseFloat> &out_value,
+                          void *memo);
+ private:
+
+  LogComponent &operator = (const LogComponent &other); // Disallow.
+};
+
+
+/////////////////////////////
+
+class SoftReLUComponent: public NonlinearComponent {
+ public:
+  explicit SoftReLUComponent(const SoftReLUComponent &other):
+      NonlinearComponent(other) { }
+  SoftReLUComponent() { }
+  virtual std::string Type() const { return "SoftReLUComponent"; }
+  virtual Component* Copy() const { return new SoftReLUComponent(*this); }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kPropagateInPlace|
+        kStoresStats;
+  }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, //out_value
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void StoreStats(const CuMatrixBase<BaseFloat> &in_value,
+                          const CuMatrixBase<BaseFloat> &out_value,
+                          void *memo);
+ private:
+
+  SoftReLUComponent &operator = (const SoftReLUComponent &other); // Disallow.
+};
+
+//////////
+
+class FloorReLUComponent: public NonlinearComponent {
+ public:
+  explicit FloorReLUComponent(const FloorReLUComponent &other): NonlinearComponent(other) { }
+  FloorReLUComponent() { }
+  virtual std::string Type() const { return "FloorReLUComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsOutput|kPropagateInPlace|kStoresStats;
+  }
+  virtual Component* Copy() const { return new FloorReLUComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void StoreStats(const CuMatrixBase<BaseFloat> &in_value,
+                          const CuMatrixBase<BaseFloat> &out_value,
+                          void *memo);
+ private:
+
+  FloorReLUComponent &operator = (const FloorReLUComponent &other); // Disallow.
+};
+
+////////////////////////////////
+
+class KLGaussianComponent: public Component {
+ public:
+ /*
+  void SetTermps(const CuMatrixBase<BaseFloat> &inv_prior_std,
+                 const CuMatrixBase<BaseFloat> &diff,
+  			   const CuMatrixBase<BaseFloat> &diff_power_2,
+  			   const CuMatrixBase<BaseFloat> &rate) const;
+  void SetTermps(const CuMatrixBase<BaseFloat> &inv_prior_std,
+                 const CuMatrixBase<BaseFloat> &diff,
+  			   const CuMatrixBase<BaseFloat> &diff_power_2,
+  			   const CuMatrixBase<BaseFloat> &rate,
+			   const CuVectorBase<BaseFloat> &frame_scale) const;
+  */
+  
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output);
+  explicit KLGaussianComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale, output_sum, has_output);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput;
+  }
+  KLGaussianComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false), output_sum_(false), has_output_(true) { }
+  virtual std::string Type() const { return "KLGaussianComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new KLGaussianComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_, output_sum_, has_output_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  bool output_sum_;
+  bool has_output_;
+  
+  // CuMatrix<BaseFloat> *inv_prior_std_(int32 num_rows, int32 num_cols) const;
+  // CuMatrix<BaseFloat> *diff_(int32 num_rows, int32 num_cols) const;
+  // CuMatrix<BaseFloat> *diff_power_2_(int32 num_rows, int32 num_cols) const;
+  // CuMatrix<BaseFloat> *rate_(int32 num_rows, int32 num_cols) const;
+  // CuVector<BaseFloat> *frame_scale_(int32 num_rows) const;
+};
+
+////////////////////////////////
+
+class KLGaussianLogStdComponent: public Component {
+ public:
+ /*
+  void SetTermps(const CuMatrixBase<BaseFloat> &inv_prior_std,
+                 const CuMatrixBase<BaseFloat> &diff,
+  			   const CuMatrixBase<BaseFloat> &diff_power_2,
+  			   const CuMatrixBase<BaseFloat> &rate) const;
+  void SetTermps(const CuMatrixBase<BaseFloat> &inv_prior_std,
+                 const CuMatrixBase<BaseFloat> &diff,
+  			   const CuMatrixBase<BaseFloat> &diff_power_2,
+  			   const CuMatrixBase<BaseFloat> &rate,
+			   const CuVectorBase<BaseFloat> &frame_scale) const;
+  */
+  
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output);
+  explicit KLGaussianLogStdComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale, output_sum, has_output);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput;
+  }
+  KLGaussianLogStdComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false), output_sum_(false), has_output_(true) { }
+  virtual std::string Type() const { return "KLGaussianLogStdComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new KLGaussianLogStdComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_, output_sum_, has_output_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  bool output_sum_;
+  bool has_output_;
+  
+  // CuMatrix<BaseFloat> *inv_prior_std_(int32 num_rows, int32 num_cols) const;
+  // CuMatrix<BaseFloat> *diff_(int32 num_rows, int32 num_cols) const;
+  // CuMatrix<BaseFloat> *diff_power_2_(int32 num_rows, int32 num_cols) const;
+  // CuMatrix<BaseFloat> *rate_(int32 num_rows, int32 num_cols) const;
+  // CuVector<BaseFloat> *frame_scale_(int32 num_rows) const;
+};
+
+////////////////////////////////
+
+class BayesVecKLGaussianLogStdComponent: public RandomComponent {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output);
+  explicit BayesVecKLGaussianLogStdComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale, output_sum, has_output);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput|kUsesMemo|kRandomComponent;
+  }
+  BayesVecKLGaussianLogStdComponent(): input_dim_(0), output_dim_(0), KL_scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false), rand_per_frame_(false), KL_output_(true) { }
+  virtual std::string Type() const { return "BayesVecKLGaussianLogStdComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new BayesVecKLGaussianLogStdComponent(input_dim_, output_dim_, KL_scale_, input_frame_scale_, inv_frame_scale_, rand_per_frame_, KL_output_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  
+ protected:
+  
+  struct Memo {
+	CuVector<BaseFloat> rand_vec;
+	CuMatrix<BaseFloat> rand_mat;
+	CuMatrix<BaseFloat> inv_prior_std;
+	CuMatrix<BaseFloat> post_std;
+	CuMatrix<BaseFloat> diff;
+	CuMatrix<BaseFloat> diff_power_2;
+	CuMatrix<BaseFloat> rate_power_2;
+	CuVector<BaseFloat> frame_scale;
+  };
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat KL_scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  bool KL_output_;
+  bool rand_per_frame_;
+};
+
+////////////////////////////////
+
+class BayesVecKLGaussianComponent: public RandomComponent {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool rand_per_frame, bool KL_output, bool fix_rand_val);
+  explicit BayesVecKLGaussianComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool rand_per_frame, bool KL_output, bool fix_rand_val) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale, rand_per_frame, KL_output, fix_rand_val);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput|kUsesMemo|kRandomComponent;
+  }
+  BayesVecKLGaussianComponent(): input_dim_(0), output_dim_(0), KL_scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false), rand_per_frame_(false), KL_output_(true), fix_rand_val_(false) { }
+  virtual std::string Type() const { return "BayesVecKLGaussianComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new BayesVecKLGaussianComponent(input_dim_, output_dim_, KL_scale_, input_frame_scale_, inv_frame_scale_, rand_per_frame_, KL_output_, fix_rand_val_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  
+ protected:
+  
+  struct Memo {
+	CuVector<BaseFloat> rand_vec;
+	CuMatrix<BaseFloat> rand_mat;
+	CuMatrix<BaseFloat> inv_prior_std;
+	CuMatrix<BaseFloat> diff;
+	CuMatrix<BaseFloat> diff_power_2;
+	CuMatrix<BaseFloat> rate;
+	CuMatrix<BaseFloat> rate_power_2;
+	CuVector<BaseFloat> frame_scale;
+	CuMatrix<BaseFloat> KL_out;
+  };
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat KL_scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  bool KL_output_;
+  bool rand_per_frame_;
+  bool fix_rand_val_;
+};
+
+////////////////////////////////
+
+class BayesVecKLGaussianFComponent: public RandomComponent {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool rand_per_frame, bool KL_output, bool fix_rand_val);
+  explicit BayesVecKLGaussianFComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool rand_per_frame, bool KL_output, bool fix_rand_val) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale, rand_per_frame, KL_output, fix_rand_val);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput|kUsesMemo|kRandomComponent;
+  }
+  BayesVecKLGaussianFComponent(): input_dim_(0), output_dim_(0), KL_scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false), rand_per_frame_(false), KL_output_(true), fix_rand_val_(false) { }
+  virtual std::string Type() const { return "BayesVecKLGaussianFComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new BayesVecKLGaussianFComponent(input_dim_, output_dim_, KL_scale_, input_frame_scale_, inv_frame_scale_, rand_per_frame_, KL_output_, fix_rand_val_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  
+ protected:
+  
+  struct Memo {
+	CuVector<BaseFloat> rand_vec;
+	CuMatrix<BaseFloat> rand_mat;
+	CuMatrix<BaseFloat> inv_prior_std;
+	CuMatrix<BaseFloat> diff;
+	CuMatrix<BaseFloat> diff_power_2;
+	CuMatrix<BaseFloat> rate;
+	CuMatrix<BaseFloat> rate_power_2;
+	CuVector<BaseFloat> frame_scale;
+	CuMatrix<BaseFloat> KL_out;
+  };
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat KL_scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  bool KL_output_;
+  bool rand_per_frame_;
+  bool fix_rand_val_;
+};
+
+////////////////////////////////
+
+class BayesVecKLGaussianVarComponent: public RandomComponent {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output);
+  explicit BayesVecKLGaussianVarComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale, bool output_sum, bool has_output) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale, output_sum, has_output);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput|kUsesMemo|kRandomComponent;
+  }
+  BayesVecKLGaussianVarComponent(): input_dim_(0), output_dim_(0), KL_scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false), rand_per_frame_(false), KL_output_(true) { }
+  virtual std::string Type() const { return "BayesVecKLGaussianVarComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new BayesVecKLGaussianVarComponent(input_dim_, output_dim_, KL_scale_, input_frame_scale_, inv_frame_scale_, rand_per_frame_, KL_output_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  
+ protected:
+  
+  struct Memo {
+	CuVector<BaseFloat> rand_vec;
+	CuMatrix<BaseFloat> rand_mat;
+	CuMatrix<BaseFloat> inv_prior_var;
+	CuMatrix<BaseFloat> diff;
+	CuMatrix<BaseFloat> diff_power_2;
+	CuMatrix<BaseFloat> rate_power_2;
+	CuVector<BaseFloat> frame_scale;
+  };
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat KL_scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  bool KL_output_;
+  bool rand_per_frame_;
+};
+
+
+
+//////////////////////////
+
+class InputVectorLinearComponent: public Component {
+public:
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  void Init(const std::vector<int32> &sizes); // the vector is of the input dim
+                                              // (>= 1) for each output dim.
+  void Init(int32 input_dim, int32 output_dim);
+  void GetSizes(std::vector<int32> *sizes) const; // Get a vector saying, for
+                                                  // each output-dim, how many
+                                                  // inputs were summed over.
+  virtual void InitFromConfig(ConfigLine *cfl);
+  InputVectorLinearComponent() { }
+  virtual std::string Type() const { return "InputVectorLinearComponent"; }
+  virtual int32 Properties() const { return kSimpleComponent|kBackpropNeedsInput|kBackpropNeedsOutput;; }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const;
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+
+private:
+  KALDI_DISALLOW_COPY_AND_ASSIGN(InputVectorLinearComponent);
+  // Note: Int32Pair is just struct{ int32 first; int32 second }; it's defined
+  // in cu-matrixdim.h as extern "C" which is needed for the CUDA interface.
+  CuArray<Int32Pair> indexes_; // for each output index, the (start, end) input
+                               // index.
+  CuArray<int32> reverse_indexes_; // for each input index, the output index.
+  int32 input_dim_;
+  int32 output_dim_;
+};
+
+
+/////////////////////////////////////////////////////
+
+class BayesAffineComponent: public UpdatableComponent {
+ public:
+  virtual int32 InputDim() const { return linear_params_mean_.NumCols(); }
+  virtual int32 OutputDim() const { return linear_params_mean_.NumRows(); }
+
+  BaseFloat OrthonormalConstraint() const { return orthonormal_constraint_; }
+
+  virtual std::string Info() const;
+  virtual void InitFromConfig(ConfigLine *cfl);
+
+  BayesAffineComponent(): orthonormal_constraint_(0.0), KL_scale_(0.00001), 
+							test_mode_(false), share_std_input_(false), share_std_output_(false),
+							share_std_input_sampling_(false), share_std_output_sampling_(false),
+							use_exp_std_(false), update_prior_(false) { } // use Init to really initialize.
+  virtual std::string Type() const { return "BayesAffineComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kUpdatableComponent|
+        kBackpropNeedsInput|kBackpropAdds|kUsesMemo;
+  }
+
+
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, // out_value
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+
+  virtual void DeleteMemo(void *memo) const {
+    delete static_cast<CuMatrix<BaseFloat>*>(memo);
+  }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual Component* Copy() const;
+
+
+  // Some functions from base-class UpdatableComponent.
+  virtual void Scale(BaseFloat scale);
+  virtual void Add(BaseFloat alpha, const Component &other);
+  virtual void PerturbParams(BaseFloat stddev);
+  virtual BaseFloat DotProduct(const UpdatableComponent &other) const;
+  virtual int32 NumParameters() const;
+  virtual void Vectorize(VectorBase<BaseFloat> *params) const;
+  virtual void UnVectorize(const VectorBase<BaseFloat> &params);
+
+  // Some functions that are specific to this class.
+
+  virtual void SetParams(const CuVectorBase<BaseFloat> &bias,
+                         const CuMatrixBase<BaseFloat> &linear_mean,
+						 const CuMatrixBase<BaseFloat> &linear_std,
+						 const CuMatrixBase<BaseFloat> &linear_prior_mean,
+						 const CuMatrixBase<BaseFloat> &linear_prior_std);
+  const CuVector<BaseFloat> &BiasParams() const { return bias_params_; }
+  CuVector<BaseFloat> &BiasParams() { return bias_params_; }
+  const CuMatrix<BaseFloat> &LinearParams() const { return linear_params_mean_; }
+  CuMatrix<BaseFloat> &LinearParams() { return linear_params_mean_; }
+  explicit BayesAffineComponent(const BayesAffineComponent &other);
+  // The next constructor is used in converting from nnet1.
+  BayesAffineComponent(const CuMatrixBase<BaseFloat> &linear_params_mean,
+					const CuMatrixBase<BaseFloat> &linear_params_std,
+					const CuMatrixBase<BaseFloat> &linear_prior_mean,
+					const CuMatrixBase<BaseFloat> &linear_prior_std,
+                  const CuVectorBase<BaseFloat> &bias_params,
+                  BaseFloat learning_rate);
+  // This function resizes the dimensions of the component, setting the
+  // parameters to zero, while leaving any other configuration values the same.
+  virtual void Resize(int32 input_dim, int32 output_dim);
+
+  void Init(int32 input_dim, int32 output_dim,
+            BaseFloat param_mean_stddev, BaseFloat param_std_stddev, BaseFloat bias_stddev, BaseFloat prior_mean, BaseFloat prior_std);
+ protected:
+  void Init(std::string matrix_filename);
+
+  friend class NaturalGradientBayesAffineComponent;
+  // This function Update() is for extensibility; child classes may override
+  // this, e.g. for natural gradient update.
+  virtual void Update(
+      const std::string &debug_info,
+      const CuMatrixBase<BaseFloat> &in_value,
+      const CuMatrixBase<BaseFloat> &out_deriv,
+	  const CuMatrixBase<BaseFloat> &rand_mat) {
+    UpdateSimple(in_value, out_deriv, rand_mat);
+  }
+  // UpdateSimple is used when *this is a gradient.  Child classes may override
+  // this if needed, but typically won't need to.
+  virtual void UpdateSimple(
+      const CuMatrixBase<BaseFloat> &in_value,
+      const CuMatrixBase<BaseFloat> &out_deriv,
+	  const CuMatrixBase<BaseFloat> &rand_mat);
+
+  const BayesAffineComponent &operator = (const BayesAffineComponent &other); // Disallow.
+  CuMatrix<BaseFloat> linear_params_mean_;
+  CuMatrix<BaseFloat> linear_params_std_;
+  CuMatrix<BaseFloat> linear_prior_mean_;
+  CuMatrix<BaseFloat> linear_prior_std_;
+  CuVector<BaseFloat> bias_params_;
+  // see documentation at the top of this class for more information on the
+  // following.
+  BaseFloat orthonormal_constraint_;
+  BaseFloat KL_scale_;
+  
+  bool test_mode_;
+  bool share_std_input_;
+  bool share_std_output_;
+  bool share_std_input_sampling_;
+  bool share_std_output_sampling_;
+  bool use_exp_std_;
+  bool update_prior_;
+  
+  //CuMatrix<BaseFloat> rand_mat_;
+  //CuMatrix<BaseFloat> linear_params_;
+};
+
+////////////////////////////////////////////////////////////////////////////////////
+
+class NaturalGradientBayesAffineComponent: public BayesAffineComponent {
+ public:
+  virtual std::string Type() const { return "NaturalGradientBayesAffineComponent"; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  // this constructor does not really initialize, use InitFromConfig() or Read().
+  NaturalGradientBayesAffineComponent() { }
+  void InitFromConfig(ConfigLine *cfl);
+  virtual std::string Info() const;
+  virtual Component* Copy() const;
+  virtual void Scale(BaseFloat scale);
+  virtual void Add(BaseFloat alpha, const Component &other);
+  virtual void FreezeNaturalGradient(bool freeze);
+
+  virtual void ConsolidateMemory();
+
+  // copy constructor
+  explicit NaturalGradientBayesAffineComponent(
+      const NaturalGradientBayesAffineComponent &other);
+  NaturalGradientBayesAffineComponent(
+      const CuMatrixBase<BaseFloat> &linear_params_mean,
+		const CuMatrixBase<BaseFloat> &linear_params_std,
+		const CuMatrixBase<BaseFloat> &linear_prior_mean,
+		const CuMatrixBase<BaseFloat> &linear_prior_std,
+        const CuVectorBase<BaseFloat> &bias_params);
+ private:
+  // disallow assignment operator.
+  NaturalGradientBayesAffineComponent &operator= (
+      const NaturalGradientBayesAffineComponent&);
+
+  OnlineNaturalGradient preconditioner_in_;
+
+  OnlineNaturalGradient preconditioner_out_;
+
+  virtual void Update(
+      const std::string &debug_info,
+      const CuMatrixBase<BaseFloat> &in_value,
+      const CuMatrixBase<BaseFloat> &out_deriv,
+	  const CuMatrixBase<BaseFloat> &rand_mat);
+};
+
+////////////////////////////////////////////////////////////////////////////////////
+
+
+/*
+  LinearSelectColComponent represents a linear (matrix) transformation of its input, with
+  a matrix as its trainable parameters.  It's the same as
+  NaturalGradientAffineComponent, but without the bias term.
+
+  Configuration values accepted by this component:
+
+  Values inherited from UpdatableComponent (see its declaration in
+  nnet-component-itf for details):
+     learning-rate
+     learning-rate-factor
+     max-change
+
+  Values used in initializing the component's parameters:
+     input-dim             =1.  The input dimension.
+     output-dim            e.g. output-dim=1024.  The output dimension.
+	 col-num				e.g. input-dim=1024. The col dimension.
+     param-stddev          e.g. param-stddev=0.025.  The standard deviation
+                           used to randomly initialize the linear parameters
+                           (as Gaussian random values * param-stddev).
+                           Defaults to 1/sqrt(input-dim), which is Glorot
+                           initialization.
+     matrix                e.g. matrix=foo/bar/init.mat  May be used as an
+                           alternative to (input-dim, output-dim, param-stddev,
+                           bias-stddev, bias-mean) to initialize the parameters.
+                           Dimension is output-dim by (input-dim + 1), last
+                           column is interpreted as the bias.
+    orthonormal-constraint=0.0   If you set this to 1.0, then
+                           the linear_params_ matrix will be (approximately)
+                           constrained during training to have orthonormal rows
+                           (or columns, whichever is fewer).. it turns out the
+                           real name for this is a "semi-orthogonal" matrix.
+                           You can choose a positive nonzero value different
+                           than 1.0 to have a scaled semi-orthgonal matrix,
+                           i.e. with singular values at the selected value
+                           (e.g. 0.5, or 2.0).  This is not enforced inside the
+                           component itself; you have to call
+                           ConstrainOrthonormal() from the training code to do
+                           this.  All this component does is return the
+                           OrthonormalConstraint() value.  If you set this to a
+                           negative value, it's like saying "for any value",
+                           i.e. it will constrain the parameter matrix to be
+                           closer to "any alpha" times a semi-orthogonal matrix,
+                           without changing its overall norm.
+
+   Options to the natural gradient (you won't normally have to set these,
+   the defaults are suitable):
+
+      use-natural-gradient=true   Set this to false to disable the natural-gradient
+                            update entirely (it will do regular SGD).
+      num-samples-history   Number of frames used as the time-constant to
+                            determine how 'up-to-date' the Fisher-matrix
+                            estimates are.  Smaller -> more up-to-date, but more
+                            noisy.  default=2000.
+      alpha                 Constant that determines how much we smooth the
+                            Fisher-matrix estimates with the unit matrix.
+                            Larger means more smoothing. default=4.0
+      rank-in               Rank used in low-rank-plus-unit estimate of Fisher
+                            matrix in the input space.  default=20.
+      rank-out              Rank used in low-rank-plus-unit estimate of Fisher
+                            matrix in the output-derivative space.  default=80.
+      update-period         Determines after with what frequency (in
+                            minibatches) we update the Fisher-matrix estimates;
+                            making this > 1 saves a little time in training.
+                            default=4.
+*/
+class LinearSelectColComponent: public UpdatableComponent {
+ public:
+  virtual int32 InputDim() const { return 1; }
+  virtual int32 OutputDim() const { return params_.NumRows(); }
+
+  virtual std::string Type() const { return "LinearSelectColComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kUpdatableComponent|
+        kPropagateAdds|kBackpropAdds|kUsesMemo;
+  }
+
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, // in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  // this constructor does not really initialize, use InitFromConfig() or Read().
+  LinearSelectColComponent() { }
+  void InitFromConfig(ConfigLine *cfl);
+  virtual std::string Info() const;
+  virtual Component* Copy() const;
+  virtual void Scale(BaseFloat scale);
+  virtual void Add(BaseFloat alpha, const Component &other);
+  virtual void PerturbParams(BaseFloat stddev);
+  virtual BaseFloat DotProduct(const UpdatableComponent &other) const;
+  virtual int32 NumParameters() const;
+  virtual void Vectorize(VectorBase<BaseFloat> *params) const;
+  virtual void UnVectorize(const VectorBase<BaseFloat> &params);
+  virtual void FreezeNaturalGradient(bool freeze);
+  virtual void ConsolidateMemory();
+
+  virtual void DeleteMemo(void *memo) const {
+    delete static_cast<CuMatrix<BaseFloat>*>(memo);
+  }
+  
+  // copy constructor
+  explicit LinearSelectColComponent(const LinearSelectColComponent &other);
+
+  explicit LinearSelectColComponent(const CuMatrix<BaseFloat> &params);
+
+  BaseFloat OrthonormalConstraint() const { return orthonormal_constraint_; }
+  CuMatrixBase<BaseFloat> &Params() { return params_; }
+  const CuMatrixBase<BaseFloat> &Params() const { return params_; }
+ private:
+
+  // disallow assignment operator.
+  LinearSelectColComponent &operator= (
+      const LinearSelectColComponent&);
+
+  CuMatrix<BaseFloat> params_;
+
+  BaseFloat orthonormal_constraint_;
+  // If true (and if no this->is_gradient_), use natural gradient updates.
+  bool use_natural_gradient_;
+  OnlineNaturalGradient preconditioner_in_;
+  OnlineNaturalGradient preconditioner_out_;
+};
+
+////////////////////////////////
+
+class VecL2NormComponent: public Component {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale);
+  explicit VecL2NormComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kPropagateInPlace;
+  }
+  VecL2NormComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false) { }
+  virtual std::string Type() const { return "VecL2NormComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new VecL2NormComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+};
+
+////////////////////////////////
+
+class VeclogNormComponent: public Component {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale);
+  explicit VeclogNormComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kPropagateInPlace;
+  }
+  VeclogNormComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false) { }
+  virtual std::string Type() const { return "VeclogNormComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new VeclogNormComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+};
+
+/////////////////////////////
+
+class PnormSumBlockComponent: public Component {
+ public:
+  explicit PnormSumBlockComponent(const PnormSumBlockComponent &other);
+  PnormSumBlockComponent() { }
+  virtual std::string Type() const { return "PnormSumBlockComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateAdds|kBackpropAdds|kBackpropNeedsInput|kBackpropNeedsOutput;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new PnormSumBlockComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  PnormSumBlockComponent &operator = (const PnormSumBlockComponent &other); // Disallow.
+};
+
+/////////////////////////////
+
+class WeightSumBlockComponent: public Component {
+ public:
+  explicit WeightSumBlockComponent(const WeightSumBlockComponent &other);
+  WeightSumBlockComponent() { }
+  virtual std::string Type() const { return "WeightSumBlockComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateAdds|kBackpropAdds|kBackpropNeedsInput|kBackpropNeedsOutput;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new WeightSumBlockComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  BaseFloat weight_deriv_scale_;
+  int32 mix_num_;
+  WeightSumBlockComponent &operator = (const WeightSumBlockComponent &other); // Disallow.
+};
+
+/////////////////////////////
+
+class WeightSumBlockFixComponent: public Component {
+ public:
+  explicit WeightSumBlockFixComponent(const WeightSumBlockFixComponent &other);
+  WeightSumBlockFixComponent() { }
+  virtual std::string Type() const { return "WeightSumBlockFixComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateAdds|kBackpropAdds|kBackpropNeedsInput|kBackpropNeedsOutput;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new WeightSumBlockFixComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  BaseFloat weight_deriv_scale_;
+  int32 mix_num_;
+  WeightSumBlockFixComponent &operator = (const WeightSumBlockFixComponent &other); // Disallow.
+};
+
+/////////////////////////////
+
+class WeightSumBlockRandomComponent: public RandomComponent {
+ public:
+  explicit WeightSumBlockRandomComponent(const WeightSumBlockRandomComponent &other);
+  WeightSumBlockRandomComponent() { }
+  virtual std::string Type() const { return "WeightSumBlockRandomComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateAdds|kBackpropAdds|kBackpropNeedsInput|kBackpropNeedsOutput|kRandomComponent|kUsesMemo;
+  }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new WeightSumBlockRandomComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  struct Memo {
+	CuMatrix<BaseFloat> rand_mask;
+  };
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  BaseFloat weight_deriv_scale_;
+  int32 mix_num_;
+  int32 rand_num_;
+  
+  bool rand_per_frame_;
+  bool test_time_sample_;
+  
+  WeightSumBlockRandomComponent &operator = (const WeightSumBlockRandomComponent &other); // Disallow.
+};
+
+//////////
+
+class SoftmaxKLComponent: public Component {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale);
+  explicit SoftmaxKLComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsOutput|kBackpropNeedsInput;
+  }
+  SoftmaxKLComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false) { }
+  virtual std::string Type() const { return "SoftmaxKLComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new SoftmaxKLComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+};
+
+//////////
+
+class SumOneKLComponent: public Component {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale);
+  explicit SumOneKLComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsOutput|kBackpropNeedsInput;
+  }
+  SumOneKLComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false) { }
+  virtual std::string Type() const { return "SumOneKLComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new SumOneKLComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+};
+
+//////////
+
+class BLHUCGMMComponent: public UpdatableComponent {
+ public:
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+
+  virtual std::string Type() const { return "BLHUCGMMComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kUpdatableComponent|kBackpropNeedsInput|kBackpropNeedsOutput|kUsesMemo|
+        kPropagateAdds|kBackpropAdds|kRandomComponent;
+  }
+
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  // this constructor does not really initialize, use InitFromConfig() or Read().
+  BLHUCGMMComponent() { }
+  void InitFromConfig(ConfigLine *cfl);
+  virtual std::string Info() const;
+  virtual Component* Copy() const;
+  virtual void Scale(BaseFloat scale);
+  virtual void Add(BaseFloat alpha, const Component &other);
+  virtual void PerturbParams(BaseFloat stddev);
+  virtual BaseFloat DotProduct(const UpdatableComponent &other) const;
+  virtual int32 NumParameters() const;
+  virtual void Vectorize(VectorBase<BaseFloat> *params) const;
+  virtual void UnVectorize(const VectorBase<BaseFloat> &params);
+  virtual void FreezeNaturalGradient(bool freeze);
+  virtual void ConsolidateMemory();
+  void SetTestMode(bool test_mode) { test_mode_ = test_mode; }
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  
+  // copy constructor
+  explicit BLHUCGMMComponent(const BLHUCGMMComponent &other);
+
+  explicit BLHUCGMMComponent(const CuMatrix<BaseFloat> &params, BaseFloat KL_scale, 
+	BaseFloat mean_update_scale, BaseFloat std_update_scale, BaseFloat prior_mean_update_scale, BaseFloat prior_std_update_scale,
+	bool test_mode, bool share_std_dim, bool share_mix_sampling, bool input_frame_scale, bool inv_frame_scale,
+	int32 activation, int32 mix_num, int32 input_dim, int32 output_dim);
+
+  BaseFloat OrthonormalConstraint() const { return orthonormal_constraint_; }
+  CuMatrixBase<BaseFloat> &Params() { return params_; }
+  const CuMatrixBase<BaseFloat> &Params() const { return params_; }
+ private:
+
+  // disallow assignment operator.
+  BLHUCGMMComponent &operator= (
+      const BLHUCGMMComponent&);
+
+  CuMatrix<BaseFloat> params_;
+  
+  CuRand<BaseFloat> random_generator_;
+  
+  BaseFloat KL_scale_;
+  BaseFloat mean_update_scale_;
+  BaseFloat std_update_scale_;
+  BaseFloat prior_mean_update_scale_;
+  BaseFloat prior_std_update_scale_;
+  bool test_mode_;
+  bool share_std_dim_;
+  bool share_mix_sampling_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+  int32 activation_; // sigmoid=0, relu=1, exp=2, lin=3
+  int32 mix_num_;
+  
+  int32 input_dim_;
+  int32 output_dim_;
+
+  struct Memo {
+	CuVector<BaseFloat> rand_vec;
+	CuMatrix<BaseFloat> rand_mat;
+	CuMatrix<BaseFloat> LHUC_out;
+  };
+  
+  BaseFloat orthonormal_constraint_;
+  // If true (and if no this->is_gradient_), use natural gradient updates.
+  bool use_natural_gradient_;
+  OnlineNaturalGradient preconditioner_in_;
+  OnlineNaturalGradient preconditioner_out_;
+};
+
+
+//////////
+
+class KLAdaptComponent: public Component {
+ public:
+  explicit KLAdaptComponent(const KLAdaptComponent &other):
+      dim_(other.dim_), SI_scale_(other.SI_scale_) { }
+  KLAdaptComponent() { }
+  virtual std::string Type() const { return "KLAdaptComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput;
+  }
+  virtual int32 InputDim() const { return 2*dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new KLAdaptComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new KLAdaptComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  BaseFloat SI_scale_;
+
+  KLAdaptComponent &operator = (const KLAdaptComponent &other); // Disallow.
+};
+
+
+/////////////////////////////
+
+class GumbelSoftmax : public RandomComponent {
+ public:
+  void Init(int32 dim, BaseFloat temperature = 1.0,
+            bool apply_log = true, int32 temperature_decrease=0, BaseFloat temperature_decrease_proportion = 1.0, BaseFloat temperature_decrease_minus = 0.0);
+
+  GumbelSoftmax(int32 dim, BaseFloat temperature = 1.0,
+                   bool apply_log = true, int32 temperature_decrease=0, BaseFloat temperature_decrease_proportion = 1.0, BaseFloat temperature_decrease_minus = 0.0) {
+    Init(dim, temperature, apply_log);
+  }
+
+  GumbelSoftmax(): dim_(0), temperature_(1.0),
+                      apply_log_(true), temperature_decrease_(0), temperature_decrease_proportion_(1.0), temperature_decrease_minus_(0.0) { }
+
+  GumbelSoftmax(const GumbelSoftmax &other);
+
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|
+        kBackpropNeedsOutput|kRandomComponent;
+  }
+  virtual std::string Type() const { return "GumbelSoftmax"; }
+
+  virtual void InitFromConfig(ConfigLine *cfl);
+
+  virtual int32 InputDim() const { return dim_; }
+
+  virtual int32 OutputDim() const { return dim_; }
+
+  virtual void Read(std::istream &is, bool binary);
+
+  // Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+
+  virtual Component* Copy() const;
+
+  virtual std::string Info() const;
+
+  void SetTemperature(BaseFloat temperature) {
+    temperature_ = temperature;
+  }
+
+  BaseFloat Temperature() const { return temperature_; }
+ private:
+  int32 dim_;
+  /// dropout-proportion is the proportion that is dropped out,
+  /// e.g. if 0.1, we set 10% to zero value.
+  BaseFloat temperature_;
+  bool apply_log_;
+  
+  int32 temperature_decrease_;
+  BaseFloat temperature_decrease_proportion_;
+  BaseFloat temperature_decrease_minus_;
+};
+
+//////////
+
+class SoftmaxKLPriorComponent: public Component {
+ public:
+  void Init(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale);
+  explicit SoftmaxKLPriorComponent(int32 input_dim, int32 output_dim, BaseFloat scale, bool input_frame_scale, bool inv_frame_scale) {
+    Init(input_dim, output_dim, scale, input_frame_scale, inv_frame_scale);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsOutput|kBackpropNeedsInput;
+  }
+  SoftmaxKLPriorComponent(): input_dim_(0), output_dim_(0), scale_(1.0), input_frame_scale_(false), inv_frame_scale_(false) { }
+  virtual std::string Type() const { return "SoftmaxKLPriorComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual std::string Info() const;
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new SoftmaxKLPriorComponent(input_dim_, output_dim_, scale_, input_frame_scale_, inv_frame_scale_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  
+  int32 input_dim_;
+  int32 output_dim_;
+  BaseFloat scale_;
+  bool input_frame_scale_;
+  bool inv_frame_scale_;
+};
+
+////////////////////////////////
+
+class PriorSelectKLGaussianComponent: public UpdatableComponent {
+ public:
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+
+  BaseFloat OrthonormalConstraint() const { return orthonormal_constraint_; }
+
+  virtual std::string Info() const;
+  virtual void InitFromConfig(ConfigLine *cfl);
+
+  PriorSelectKLGaussianComponent(): orthonormal_constraint_(0.0), mix_num_(1), input_mix_num_(1), output_weight_(false), input_dim_(0), output_dim_(0) { } // use Init to really initialize.
+  virtual std::string Type() const { return "PriorSelectKLGaussianComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kUpdatableComponent|
+        kBackpropNeedsInput|kBackpropAdds|kUsesMemo;
+  }
+
+
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &, // out_value
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+
+  virtual Component* Copy() const;
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+
+  // Some functions from base-class UpdatableComponent.
+  virtual void Scale(BaseFloat scale);
+  virtual void Add(BaseFloat alpha, const Component &other);
+  virtual void PerturbParams(BaseFloat stddev);
+  virtual BaseFloat DotProduct(const UpdatableComponent &other) const;
+  virtual int32 NumParameters() const;
+  virtual void Vectorize(VectorBase<BaseFloat> *params) const;
+  virtual void UnVectorize(const VectorBase<BaseFloat> &params);
+
+  // Some functions that are specific to this class.
+
+  virtual void SetParams(const CuVectorBase<BaseFloat> &bias,
+                         const CuMatrixBase<BaseFloat> &linear);
+  const CuVector<BaseFloat> &BiasParams() const { return bias_params_; }
+  CuVector<BaseFloat> &BiasParams() { return bias_params_; }
+  const CuMatrix<BaseFloat> &LinearParams() const { return linear_params_; }
+  CuMatrix<BaseFloat> &LinearParams() { return linear_params_; }
+  explicit PriorSelectKLGaussianComponent(const PriorSelectKLGaussianComponent &other);
+  // The next constructor is used in converting from nnet1.
+  PriorSelectKLGaussianComponent(const CuMatrixBase<BaseFloat> &linear_params,
+                  const CuVectorBase<BaseFloat> &bias_params,
+                  BaseFloat learning_rate);
+  // This function resizes the dimensions of the component, setting the
+  // parameters to zero, while leaving any other configuration values the same.
+  virtual void Resize(int32 input_dim, int32 output_dim);
+
+  void Init(int32 input_dim, int32 output_dim,
+            BaseFloat param_stddev, BaseFloat bias_stddev, BaseFloat mean_init, BaseFloat std_init);
+ protected:
+  void Init(std::string matrix_filename);
+
+  friend class NaturalGradientPriorSelectKLGaussianComponent;
+  // This function Update() is for extensibility; child classes may override
+  // this, e.g. for natural gradient update.
+  virtual void Update(
+      const std::string &debug_info,
+      const CuMatrixBase<BaseFloat> &in_value,
+      const CuMatrixBase<BaseFloat> &out_deriv) {
+    UpdateSimple(in_value, out_deriv);
+  }
+  // UpdateSimple is used when *this is a gradient.  Child classes may override
+  // this if needed, but typically won't need to.
+  virtual void UpdateSimple(
+      const CuMatrixBase<BaseFloat> &in_value,
+      const CuMatrixBase<BaseFloat> &out_deriv);
+
+  const PriorSelectKLGaussianComponent &operator = (const PriorSelectKLGaussianComponent &other); // Disallow.
+  CuMatrix<BaseFloat> linear_params_;
+  CuVector<BaseFloat> bias_params_;
+  // see documentation at the top of this class for more information on the
+  // following.
+  BaseFloat orthonormal_constraint_;
+  
+  int32 mix_num_;
+  int32 input_mix_num_;
+  bool output_weight_;
+  int32 input_dim_;
+  int32 output_dim_;
+  
+  struct Memo {
+	CuMatrix<BaseFloat> select_id;
+  };
+};
+
+///////////////////////////////
+
+class InvertComponent: public NonlinearComponent {
+ public:
+  explicit InvertComponent(const InvertComponent &other): NonlinearComponent(other) { }
+  InvertComponent() { }
+  virtual std::string Type() const { return "InvertComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsOutput|kPropagateInPlace|kStoresStats;
+  }
+  virtual Component* Copy() const { return new InvertComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual void StoreStats(const CuMatrixBase<BaseFloat> &in_value,
+                          const CuMatrixBase<BaseFloat> &out_value,
+                          void *memo);
+ private:
+  // this function is called from Backprop code and only does something if the
+  // self-repair-scale config value is set.
+  void RepairGradients(const CuMatrixBase<BaseFloat> &out_value,
+                       CuMatrixBase<BaseFloat> *in_deriv,
+                       InvertComponent *to_update) const;
+
+  InvertComponent &operator = (const InvertComponent &other); // Disallow.
+};
+
+////////////////////////////////////////////////////////
+
+
+class SpecMaskOnlineComponent: public Component {
+ public:
+  explicit SpecMaskOnlineComponent(const SpecMaskOnlineComponent &other):
+      dim_(other.dim_), width_filter_max_(other.width_filter_max_), width_time_max_(other.width_time_max_), rate_time_max_(other.rate_time_max_), num_filter_mask_(other.num_filter_mask_), num_time_mask_(other.num_time_mask_), mask_value_(other.mask_value_), mask_prob_(other.mask_prob_), mask_filter_(other.mask_filter_), mask_time_(other.mask_time_), mask_as_mean_(other.mask_as_mean_) { }
+  SpecMaskOnlineComponent() { }
+  virtual std::string Type() const { return "SpecMaskOnlineComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kPropagateInPlace|kBackpropInPlace;
+  }
+  virtual int32 InputDim() const { return dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new SpecMaskOnlineComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new SpecMaskOnlineComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 width_filter_max_;
+  int32 width_time_max_;
+  BaseFloat rate_time_max_;
+  int32 num_filter_mask_;
+  int32 num_time_mask_;
+  BaseFloat mask_value_;
+  BaseFloat mask_prob_;
+  bool mask_filter_;
+  bool mask_time_;
+  bool mask_as_mean_;
+
+  SpecMaskOnlineComponent &operator = (const SpecMaskOnlineComponent &other); // Disallow.
+};
+
+///////////////////////////////////////////////////////////////////////
+
+class FramewiseLinearComponent: public Component {
+ public:
+  void Init(int32 input_dim, int32 output_dim, int32 feat_dim);
+  explicit FramewiseLinearComponent(int32 input_dim, int32 output_dim, int32 feat_dim) {
+    Init(input_dim, output_dim, feat_dim);
+  }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kPropagateAdds|kBackpropAdds;
+  }
+  FramewiseLinearComponent(): input_dim_(0), output_dim_(0), feat_dim_(0) { }
+  virtual std::string Type() const { return "FramewiseLinearComponent"; }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+  virtual Component* Copy() const { return new FramewiseLinearComponent(input_dim_,
+                                                              output_dim_,feat_dim_); }
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+
+ protected:
+  int32 input_dim_; // input = [ feat(T*N) param(T*(N*M)) ]
+  int32 output_dim_; // output(T*M)
+  int32 feat_dim_; // feat(N)
+};
+
+
 } // namespace nnet3
 } // namespace kaldi
 
