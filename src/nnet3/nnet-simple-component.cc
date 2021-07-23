@@ -2754,15 +2754,23 @@ void ConstantFunctionComponent::InitFromConfig(ConfigLine *cfl) {
   BaseFloat output_mean = 0.0, output_stddev = 0.0;
   cfl->GetValue("output-mean", &output_mean);
   cfl->GetValue("output-stddev", &output_stddev);
+  
+  std::string vector_filename; // Modified version for adaptation!!!
+  if (cfl->GetValue("vector", &vector_filename)) {
+	CuVector<BaseFloat> vec;
+    ReadKaldiObject(vector_filename, &vec);
+    output_ = vec;
+  } else {
+    Vector<BaseFloat> output(output_dim);
+    output.SetRandn();
+    output.Scale(output_stddev);
+    output.Add(output_mean);
+    output_ = output;
+  }
   if (!ok || cfl->HasUnusedValues() || input_dim_ <= 0 ||
       output_dim <= 0) {
     KALDI_ERR << "Bad initializer " << cfl->WholeLine();
   }
-  Vector<BaseFloat> output(output_dim);
-  output.SetRandn();
-  output.Scale(output_stddev);
-  output.Add(output_mean);
-  output_ = output;
 }
 
 int32 ConstantFunctionComponent::NumParameters() const {

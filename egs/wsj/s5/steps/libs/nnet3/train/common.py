@@ -19,6 +19,7 @@ import shutil
 
 import libs.common as common_lib
 from libs.nnet3.train.dropout_schedule import *
+from libs.nnet3.train.temperature_schedule import *
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
