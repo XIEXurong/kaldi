@@ -87,11 +87,12 @@ done
 
 # BLHUC adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/LHUC/BLHUC_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -111,11 +112,12 @@ done
 
 # HUB adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/HUB/HUB_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -133,11 +135,12 @@ done
 
 # BHUB adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/HUB/BHUB_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -157,11 +160,12 @@ done
 
 # PAct adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/PAct/PAct_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -179,11 +183,12 @@ done
 
 # BPAct adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/PAct/BPAct_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -203,11 +208,12 @@ done
 
 # LHN adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/LHN/LHN_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -225,11 +231,12 @@ done
 
 # MAPLHN adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/LHN/MAPLHN_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -249,11 +256,12 @@ done
 
 # BLHN adaptation
 
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
-for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/LHN/BLHN_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
