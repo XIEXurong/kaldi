@@ -30,19 +30,19 @@ frames_per_eg=150,100,50,20,10,5
 remove_egs=false
 xent_regularize=1.0
 
-adapted_layer="cnn1 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12"
-layer_dim="2560 1536 1536 1536 1536 1536 1536" # should be corresponding to the $adapted_layer
-KL_scale="0.0001 1.0 1.0 1.0 1.0 1.0 1.0"
+adapted_layer="cnn1"
+layer_dim="2560" # should be corresponding to the $adapted_layer
+KL_scale="0.0001"
 input_config="component-node name=idct component=idct input=feature1" # cnn-tdnn, for tdnn, it can be "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))"
 input_dim=41
 prior_alpha_mean_file=  # a file or a list of files
 prior_alpha_std_file=  # a file or a list of files
-prior_alpha_mean="1.0 1.0" # a value or a list of values
-prior_alpha_std="1.0 1.0"  # a value or a list of values
+prior_alpha_mean="1.0" # a value or a list of values
+prior_alpha_std="1.0"  # a value or a list of values
 prior_beta_mean_file=  # a file or a list of files
 prior_beta_std_file=  # a file or a list of files
-prior_beta_mean="0.0 0.0" # a value or a list of values
-prior_beta_std="1.0 1.0"  # a value or a list of values
+prior_beta_mean="0.0" # a value or a list of values
+prior_beta_std="1.0"  # a value or a list of values
 common_egs_dir=
 
 # End configuration section.
@@ -73,7 +73,7 @@ adapt_set=$1 # eval2000_hires_spk_sub20
 label_lat_dir=$2 # label_lat_dir=exp/chain/cnn_tdnn_iv_1a_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0
 decode_set=$3 # eval2000_hires_spk
 
-version=_BPAct${tag}_adaptlayer${layer_num}_act${act}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
+version=_BPAct${tag}_adaptlayer${layer_num}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
 
 dirbase=exp/chain/${baseline}
 dir=exp/chain/adaptation/PAct/${baseline}${version}

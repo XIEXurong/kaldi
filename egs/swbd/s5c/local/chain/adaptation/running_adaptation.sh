@@ -1,3 +1,5 @@
+# This script is to run all the adaptation examples
+
 
 # bash local/chain/tuning/run_tdnn_7q.sh
 # bash local/chain/tuning/run_cnn_tdnn_1a.sh
@@ -62,20 +64,12 @@ done
 
 # LHUC adaptation
 
-bash local/chain/adaptation/LHUC/LHUC_adaptation.sh \
- --baseline tdnn_7q_hires_sp \
- --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
- --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
- --act "Idnt" --tag "_eval2000" \
- --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-init 1.0 \
- eval2000_hires_spk \
- exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
- eval2000_hires_spk
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-for N in _sub5 _sub10 _sub20 _sub40; do
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
+
 bash local/chain/adaptation/LHUC/LHUC_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -86,29 +80,18 @@ bash local/chain/adaptation/LHUC/LHUC_adaptation.sh \
  --act "Idnt" --tag "_eval2000$N" \
  --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-init 1.0 \
  eval2000_hires_spk$N \
- exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
 done
 
 
 # BLHUC adaptation
 
-bash local/chain/adaptation/LHUC/BLHUC_adaptation.sh \
- --baseline tdnn_7q_hires_sp \
- --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
- --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --KL-scale "0.0001 0.001 0.01 0.1 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0" \
- --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
- --act "Idnt" --tag "_eval2000" \
- --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-mean-init 1.0 --param-std-init 1.0 \
- --prior-mean "1.0" --prior-std "1.0" \
- eval2000_hires_spk \
- exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
- eval2000_hires_spk
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
 
-for N in _sub5 _sub10 _sub20 _sub40; do
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/LHUC/BLHUC_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -121,27 +104,18 @@ bash local/chain/adaptation/LHUC/BLHUC_adaptation.sh \
  --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-mean-init 1.0 --param-std-init 1.0 \
  --prior-mean "1.0" --prior-std "1.0" \
  eval2000_hires_spk$N \
- exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
 done
 
 
 # HUB adaptation
 
-bash local/chain/adaptation/HUB/HUB_adaptation.sh \
- --baseline tdnn_7q_hires_sp \
- --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
- --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
- --act "Idnt" --tag "_eval2000" \
- --epoch-num 7 --lr1 0.000001 --lr2 0.000001 --num-chunk 64 --param-init 0.0 \
- eval2000_hires_spk \
- exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
- eval2000_hires_spk
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
 
-for N in _sub5 _sub10 _sub20 _sub40; do
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/HUB/HUB_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -152,29 +126,18 @@ bash local/chain/adaptation/HUB/HUB_adaptation.sh \
  --act "Idnt" --tag "_eval2000$N" \
  --epoch-num 7 --lr1 --lr1 0.000001 --lr2 0.000001 --num-chunk 64 --param-init 0.0 \
  eval2000_hires_spk$N \
- exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
 done
 
 
 # BHUB adaptation
 
-bash local/chain/adaptation/HUB/BHUB_adaptation.sh \
- --baseline tdnn_7q_hires_sp \
- --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
- --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --KL-scale "0.0001 0.001 0.01 0.1 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0" \
- --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
- --act "Idnt" --tag "_eval2000" \
- --epoch-num 7 --lr1 0.000001 --lr2 0.000001 --num-chunk 64 --param-mean-init 0.0 --param-std-init 0.01 \
- --prior-mean "0.0" --prior-std "1.0" \
- eval2000_hires_spk \
- exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
- eval2000_hires_spk
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
 
-for N in _sub5 _sub10 _sub20 _sub40; do
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/HUB/BHUB_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
@@ -187,75 +150,126 @@ bash local/chain/adaptation/HUB/BHUB_adaptation.sh \
  --epoch-num 7 --lr1 0.000001 --lr2 0.000001 --num-chunk 64 --param-mean-init 0.0 --param-std-init 0.01 \
  --prior-mean "0.0" --prior-std "1.0" \
  eval2000_hires_spk$N \
- exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
 done
 
 
 # PAct adaptation
 
-bash local/chain/adaptation/PAct/PAct_adaptation.sh \
- --baseline tdnn_7q_hires_sp \
- --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
- --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
- --tag "_eval2000" \
- --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-alpha-init 1.0 --param-alpha-init 0.0 \
- eval2000_hires_spk \
- exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
- eval2000_hires_spk
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
 
-for N in _sub5 _sub10 _sub20 _sub40; do
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/PAct/PAct_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
  --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
+ --adapted-layer "tdnn1" \
+ --layer-dim "1536" \
  --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
  --tag "_eval2000$N" \
  --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-alpha-init 1.0 --param-alpha-init 0.0 \
  eval2000_hires_spk$N \
- exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
 done
 
 
 # BPAct adaptation
 
-bash local/chain/adaptation/PAct/BPAct_adaptation.sh \
- --baseline tdnn_7q_hires_sp \
- --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
- --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --KL-scale "0.0001 0.001 0.01 0.1 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0" \
- --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
- --tag "_eval2000" \
- --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-alpha-mean-init 1.0 --param-alpha-std-init 1.0 --param-beta-mean-init 0.0 --param-beta-std-init 1.0 \
- --prior-alpha-mean "1.0" --prior-alpha-std "1.0" --prior-beta-mean "0.0" --prior-beta-std "1.0" \
- eval2000_hires_spk \
- exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
- eval2000_hires_spk
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
 
-for N in _sub5 _sub10 _sub20 _sub40; do
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
 bash local/chain/adaptation/PAct/BPAct_adaptation.sh \
  --baseline tdnn_7q_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
  --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "tdnn1 tdnnf2 tdnnf3 tdnnf4 tdnnf5 tdnnf6 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12 tdnnf13 tdnnf14" \
- --layer-dim "1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536 1536" \
- --KL-scale "0.0001 0.001 0.01 0.1 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0" \
+ --adapted-layer "tdnn1" \
+ --layer-dim "1536" \
+ --KL-scale "0.0001" \
  --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
  --tag "_eval2000$N" \
  --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-alpha-mean-init 1.0 --param-alpha-std-init 1.0 --param-beta-mean-init 0.0 --param-beta-std-init 1.0 \
  --prior-alpha-mean "1.0" --prior-alpha-std "1.0" --prior-beta-mean "0.0" --prior-beta-std "1.0" \
  eval2000_hires_spk$N \
- exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
 done
+
+
+# LHN adaptation
+
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
+
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+bash local/chain/adaptation/LHN/LHN_adaptation.sh \
+ --baseline tdnn_7q_hires_sp \
+ --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
+ --test-ivector-dir exp/nnet3/ivectors_eval2000 \
+ --adapted-layer "tdnnf2" \
+ --layer-dim "160" \
+ --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
+ --tag "_eval2000$N" \
+ --epoch-num 7 --lr1 0.001 --lr2 0.001 --num-chunk 64 \
+ eval2000_hires_spk$N \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ eval2000_hires_spk
+done
+
+
+# MAPLHN adaptation
+
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
+
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+bash local/chain/adaptation/LHN/MAPLHN_adaptation.sh \
+ --baseline tdnn_7q_hires_sp \
+ --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
+ --test-ivector-dir exp/nnet3/ivectors_eval2000 \
+ --adapted-layer "tdnnf2" \
+ --layer-dim "160" \
+ --KL-scale "0.000001" \
+ --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
+ --tag "_eval2000$N" \
+ --epoch-num 7 --lr1 0.001 --lr2 0.001 --num-chunk 64 \
+ --prior-mean-file "exp/chain/prior_mean.mat" --prior-std-file "exp/chain/prior_std.mat" \
+ eval2000_hires_spk$N \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ eval2000_hires_spk
+done
+
+
+# BLHN adaptation
+
+if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+  ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
+fi
+
+for N in _sub5 _sub10 _sub20 _sub40 ""; do
+bash local/chain/adaptation/LHN/BLHN_adaptation.sh \
+ --baseline tdnn_7q_hires_sp \
+ --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
+ --test-ivector-dir exp/nnet3/ivectors_eval2000 \
+ --adapted-layer "tdnnf2" \
+ --layer-dim "160" \
+ --KL-scale "0.01" \
+ --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
+ --tag "_eval2000$N" \
+ --epoch-num 7 --lr1 0.001 --lr2 0.001 --num-chunk 64 --log-std true --param-std-init -2.3 \
+ --prior-mean-file "exp/chain/prior_mean.mat" --prior-std-file "exp/chain/prior_std.mat" \
+ eval2000_hires_spk$N \
+ exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
+ eval2000_hires_spk
+done
+
 
 
 # CNN-TDNN adaptation
@@ -335,8 +349,8 @@ bash local/chain/adaptation/PAct/PAct_adaptation.sh \
  --baseline cnn_tdnn_1a_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
  --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "cnn1 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12" \
- --layer-dim "2560 1536 1536 1536 1536 1536 1536" \
+ --adapted-layer "cnn1" \
+ --layer-dim "2560" \
  --input-config "component-node name=idct component=idct input=feature1" \
  --tag "_eval2000" \
  --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-alpha-init 1.0 --param-alpha-init 0.0 \
@@ -351,13 +365,13 @@ bash local/chain/adaptation/PAct/BPAct_adaptation.sh \
  --baseline cnn_tdnn_1a_hires_sp \
  --adapt-ivector-dir exp/nnet3/ivectors_eval2000 \
  --test-ivector-dir exp/nnet3/ivectors_eval2000 \
- --adapted-layer "cnn1 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12" \
- --layer-dim "2560 1536 1536 1536 1536 1536 1536" \
- --KL-scale "0.0001 1.0 1.0 1.0 1.0 1.0 1.0" \
+ --adapted-layer "cnn1" \
+ --layer-dim "2560" \
+ --KL-scale "0.0001" \
  --input-config "component-node name=idct component=idct input=feature1" \
  --tag "_eval2000" \
  --epoch-num 7 --lr1 0.01 --lr2 0.01 --num-chunk 64 --param-alpha-mean-init 1.0 --param-alpha-std-init 1.0 --param-beta-mean-init 0.0 --param-beta-std-init 1.0 \
- --prior-alpha-mean "1.0 1.0" --prior-alpha-std "1.0 1.0" --prior-beta-mean "0.0 0.0" --prior-beta-std "1.0 1.0" \
+ --prior-alpha-mean "1.0" --prior-alpha-std "1.0" --prior-beta-mean "0.0" --prior-beta-std "1.0" \
  eval2000_hires_spk \
  exp/chain/cnn_tdnn_1a_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk

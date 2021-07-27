@@ -6,15 +6,14 @@ set -e
 stage=0
 train_stage=-10
 get_egs_stage=-10
-baseline=cnn_tdnn_iv_1a_hires_sp
+baseline=tdnn_7q_hires_sp
 adapt_ivector_dir=exp/nnet3/ivectors_eval2000
 test_ivector_dir=exp/nnet3/ivectors_eval2000
 epoch_num=7
-lr1=0.01
-lr2=0.01
-num_chunk=64
-param_alpha_init=1.0
-param_beta_init=0.0
+lr1=0.001
+lr2=0.001
+num_chunk=64 # use a small size if out of memory
+param_init_file=
 tag= # any other marks
 
 decode_iter=
@@ -25,9 +24,9 @@ frames_per_eg=150,100,50,20,10,5
 remove_egs=false
 xent_regularize=1.0
 
-adapted_layer="cnn1"
-layer_dim="2560" # should be corresponding to the $adapted_layer
-input_config="component-node name=idct component=idct input=feature1" # cnn-tdnn, for tdnn, it can be "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))"
+adapted_layer="tdnnf2"
+layer_dim="160" # should be corresponding to the $adapted_layer
+input_config="component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))"
 input_dim=41
 common_egs_dir=
 
@@ -40,6 +39,7 @@ echo "$0 $@"  # Print the command line for logging
 
 adapted_layer_array=($adapted_layer)
 layer_dim_array=($layer_dim)
+param_init_file_array=($param_init_file)
 layer_num=`echo ${#adapted_layer_array[*]}`
 layer_num1=`echo ${#layer_dim_array[*]}`
 
@@ -49,10 +49,10 @@ adapt_set=$1 # eval2000_hires_spk_sub20
 label_lat_dir=$2 # label_lat_dir=exp/chain/cnn_tdnn_iv_1a_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0
 decode_set=$3 # eval2000_hires_spk
 
-version=_PAct${tag}_adaptlayer${layer_num}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
+version=_LHN${tag}_adaptlayer${layer_num}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
 
 dirbase=exp/chain/${baseline}
-dir=exp/chain/adaptation/PAct/${baseline}${version}
+dir=exp/chain/adaptation/LHN/${baseline}${version}
 
 if [ $stage -le 0 ]; then
 
@@ -77,36 +77,25 @@ EOF
 
 layer_num_minus1=$(awk "BEGIN{print($layer_num-1)}")
 
-act_component="type=NoOpComponent"
-
-
 # adaptation in each layer
 for i in `seq 0 $layer_num_minus1`; do
 
 layer=`echo ${adapted_layer_array[i]}`
 dim_tmp=`echo ${layer_dim_array[i]}`
-dim_tmp_x2=$(awk "BEGIN{print(2*$dim_tmp)}")
-dim_tmp_x4=$(awk "BEGIN{print(4*$dim_tmp)}")
+dim_tmp2=$(awk "BEGIN{print($dim_tmp*$dim_tmp)}")
+dim_tmp2_plus_dim_tmp=$(awk "BEGIN{print($dim_tmp2+$dim_tmp)}")
+
+param_init_config=
+if [ ! -z $param_init_file ]; then
+  param_init_config="matrix=${param_init_file_array[i]}"
+fi
 
 cat <<EOF >> $dir/configs/change.config	
-	# PReLU
-	component name=$layer.neg_relu type=RectifiedLinearComponent dim=$dim_tmp self-repair-scale=0
-	component-node name=$layer.neg_relu component=$layer.neg_relu input=Scale(-1.0, $layer.affine)
-	
-	# alpha
-	component name=PAct.alpha.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_alpha_init param-stddev=0 use-natural-gradient=false
-	component-node name=PAct.alpha.$layer component=PAct.alpha.$layer input=feature2
-	
-	# beta
-	component name=PAct.beta.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_beta_init param-stddev=0 use-natural-gradient=false
-	component-node name=PAct.beta.$layer component=PAct.beta.$layer input=feature2
-	
-	component name=PAct.product.$layer type=ElementwiseProductComponent output-dim=$dim_tmp_x2 input-dim=$dim_tmp_x4
-	component-node name=PAct.product.$layer component=PAct.product.$layer input=Append($layer.relu, Scale(-1.0, $layer.neg_relu), PAct.alpha.$layer, PAct.beta.$layer)
-	component name=PAct.sum.$layer type=SumBlockComponent output-dim=$dim_tmp input-dim=$dim_tmp_x2
-	component-node name=PAct.sum.$layer component=PAct.sum.$layer input=PAct.product.$layer
-	
-	component-node name=$layer.batchnorm component=$layer.batchnorm input=PAct.sum.$layer
+	component name=LHN.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp2 col-num=$spk_num l2-regularize=0.00 use-natural-gradient=false $param_init_config
+	component-node name=LHN.linear.$layer component=LHN.linear.$layer input=feature2
+	component name=LHN.multiply.$layer type=FramewiseLinearComponent input-dim=$dim_tmp2_plus_dim_tmp output-dim=$dim_tmp feat-dim=$dim_tmp
+	component-node name=LHN.multiply.$layer component=LHN.multiply.$layer input=Append(tdnnf$layer.linear,LHN.linear.$layer)
+	component-node name=$layer.affine component=$layer.affine input=LHN.multiply.$layer
 	
 EOF
 

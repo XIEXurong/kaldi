@@ -6,15 +6,14 @@ set -e
 stage=0
 train_stage=-10
 get_egs_stage=-10
-baseline=cnn_tdnn_iv_1a_hires_sp
+baseline=tdnn_7q_hires_sp
 adapt_ivector_dir=exp/nnet3/ivectors_eval2000
 test_ivector_dir=exp/nnet3/ivectors_eval2000
 epoch_num=7
-lr1=0.01
-lr2=0.01
-num_chunk=64
-param_alpha_init=1.0
-param_beta_init=0.0
+lr1=0.001
+lr2=0.001
+num_chunk=64 # use a small size if out of memory
+param_init_file=
 tag= # any other marks
 
 decode_iter=
@@ -25,10 +24,15 @@ frames_per_eg=150,100,50,20,10,5
 remove_egs=false
 xent_regularize=1.0
 
-adapted_layer="cnn1"
-layer_dim="2560" # should be corresponding to the $adapted_layer
+adapted_layer="tdnnf2"
+layer_dim="160" # should be corresponding to the $adapted_layer
+KL_scale="0.000001"
 input_config="component-node name=idct component=idct input=feature1" # cnn-tdnn, for tdnn, it can be "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))"
 input_dim=41
+prior_mean_file=  # a file or a list of files
+prior_std_file=  # a file or a list of files
+prior_mean="0.0" # a value or a list of values
+prior_std="1.0"  # a value or a list of values
 common_egs_dir=
 
 # End configuration section.
@@ -40,19 +44,26 @@ echo "$0 $@"  # Print the command line for logging
 
 adapted_layer_array=($adapted_layer)
 layer_dim_array=($layer_dim)
+KL_scale_array=($KL_scale)
+prior_mean_file_array=($prior_mean_file)
+prior_std_file_array=($prior_std_file)
+prior_mean_array=($prior_mean)
+prior_std_array=($prior_std)
+param_init_file_array=($param_init_file)
 layer_num=`echo ${#adapted_layer_array[*]}`
 layer_num1=`echo ${#layer_dim_array[*]}`
+layer_num2=`echo ${#KL_scale_array[*]}`
 
-[[ "$layer_num" == "$layer_num1" ]] || exit 1;
+[[ "$layer_num" == "$layer_num1" && "$layer_num" == "$layer_num2" ]] || exit 1;
 
 adapt_set=$1 # eval2000_hires_spk_sub20
 label_lat_dir=$2 # label_lat_dir=exp/chain/cnn_tdnn_iv_1a_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0
 decode_set=$3 # eval2000_hires_spk
 
-version=_PAct${tag}_adaptlayer${layer_num}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
+version=_MAPLHN${tag}_adaptlayer${layer_num}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
 
 dirbase=exp/chain/${baseline}
-dir=exp/chain/adaptation/PAct/${baseline}${version}
+dir=exp/chain/adaptation/LHN/${baseline}${version}
 
 if [ $stage -le 0 ]; then
 
@@ -60,6 +71,7 @@ mkdir -p $dir
 cp -r $dirbase/{configs,phones.txt,phone_lm.fst,tree,den.fst,normalization.fst,0.trans_mdl} $dir/
 cp -r $dirbase/{final.mdl,tree,phones.txt} $label_lat_dir/
 
+spk_count=data/${adapt_set}/spk_count
 spk_num=`cat data/${adapt_set}/num_spk`
 input_dim_nospk=$(awk "BEGIN{print($input_dim-1)}")
 
@@ -75,39 +87,82 @@ cat <<EOF > $dir/configs/change.config
 	dim-range-node name=feature2 input-node=input dim=1 dim-offset=40
 EOF
 
+
 layer_num_minus1=$(awk "BEGIN{print($layer_num-1)}")
-
-act_component="type=NoOpComponent"
-
 
 # adaptation in each layer
 for i in `seq 0 $layer_num_minus1`; do
 
 layer=`echo ${adapted_layer_array[i]}`
 dim_tmp=`echo ${layer_dim_array[i]}`
-dim_tmp_x2=$(awk "BEGIN{print(2*$dim_tmp)}")
-dim_tmp_x4=$(awk "BEGIN{print(4*$dim_tmp)}")
+dim_tmp2=$(awk "BEGIN{print($dim_tmp*$dim_tmp)}")
+dim_tmp2_plus_dim_tmp=$(awk "BEGIN{print($dim_tmp2+$dim_tmp)}")
+dim_tmp2_x4=$(awk "BEGIN{print(4*$dim_tmp2)}")
+KL=`echo ${KL_scale_array[i]}`
+
+
+if [[ "$i" < "${#prior_mean_array[*]}" ]]; then
+  prior_mean_tmp=`echo ${prior_mean_array[i]}`
+else
+  prior_mean_tmp=`echo ${prior_mean_array[-1]}`
+fi
+prior_mean_config="output-mean=$prior_mean_tmp output-stddev=0"
+if [ ! -z $prior_mean_file ]; then
+  if [[ "$i" < "${#prior_mean_file_array[*]}" ]]; then
+    prior_mean_file_tmp=`echo ${prior_mean_file_array[i]}`
+  else
+    prior_mean_file_tmp=`echo ${prior_mean_file_array[-1]}`
+  fi
+  prior_mean_config="vector=$prior_mean_file_tmp"
+fi
+if [[ "$i" < "${#prior_std_array[*]}" ]]; then
+  prior_std_tmp=`echo ${prior_std_array[i]}`
+else
+  prior_std_tmp=`echo ${prior_std_array[-1]}`
+fi
+prior_std_config="output-mean=$prior_std_tmp output-stddev=0"
+if [ ! -z $prior_std_file ]; then
+  if [[ "$i" < "${#prior_std_file_array[*]}" ]]; then
+    prior_std_file_tmp=`echo ${prior_std_file_array[i]}`
+  else
+    prior_std_file_tmp=`echo ${prior_std_file_array[-1]}`
+  fi
+  prior_std_config="vector=$prior_std_file_tmp"
+fi
+
+if [[ "$i" < "${#prior_mean_array[*]}" || "$i" < "${#prior_mean_file_array[*]}" || "$i" < "${#prior_std_array[*]}" || "$i" < "${#prior_std_file_array[*]}" ]]; then
+  prior_layer=$layer
+cat <<EOF >> $dir/configs/change.config
+	component name=MAPLHN.prior_mean.$prior_layer type=ConstantFunctionComponent input-dim=1 is-updatable=false output-dim=$dim_tmp2 $prior_mean_config
+	component-node name=MAPLHN.prior_mean.$prior_layer component=MAPLHN.prior_mean.$prior_layer input=feature2
+	component name=MAPLHN.prior_std.$prior_layer type=ConstantFunctionComponent input-dim=1 is-updatable=false output-dim=$dim_tmp2 $prior_std_config
+	component-node name=MAPLHN.prior_std.$prior_layer component=MAPLHN.prior_std.$prior_layer input=feature2
+EOF
+fi
+
+param_init_config=
+if [ ! -z $param_init_file ]; then
+  param_init_config="matrix=${param_init_file_array[i]}"
+fi
 
 cat <<EOF >> $dir/configs/change.config	
-	# PReLU
-	component name=$layer.neg_relu type=RectifiedLinearComponent dim=$dim_tmp self-repair-scale=0
-	component-node name=$layer.neg_relu component=$layer.neg_relu input=Scale(-1.0, $layer.affine)
-	
-	# alpha
-	component name=PAct.alpha.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_alpha_init param-stddev=0 use-natural-gradient=false
-	component-node name=PAct.alpha.$layer component=PAct.alpha.$layer input=feature2
-	
-	# beta
-	component name=PAct.beta.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_beta_init param-stddev=0 use-natural-gradient=false
-	component-node name=PAct.beta.$layer component=PAct.beta.$layer input=feature2
-	
-	component name=PAct.product.$layer type=ElementwiseProductComponent output-dim=$dim_tmp_x2 input-dim=$dim_tmp_x4
-	component-node name=PAct.product.$layer component=PAct.product.$layer input=Append($layer.relu, Scale(-1.0, $layer.neg_relu), PAct.alpha.$layer, PAct.beta.$layer)
-	component name=PAct.sum.$layer type=SumBlockComponent output-dim=$dim_tmp input-dim=$dim_tmp_x2
-	component-node name=PAct.sum.$layer component=PAct.sum.$layer input=PAct.product.$layer
-	
-	component-node name=$layer.batchnorm component=$layer.batchnorm input=PAct.sum.$layer
-	
+	component name=MAPLHN.mean.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp2 col-num=$spk_num l2-regularize=0.00 use-natural-gradient=false $param_init_config
+	component-node name=MAPLHN.mean.$layer component=MAPLHN.mean.$layer input=feature2
+EOF
+
+# the param std is unused and defined to keep the format
+cat <<EOF >> $dir/configs/change.config	
+	component name=MAPLHN.std.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp2 col-num=$spk_num l2-regularize=0.00 param-mean=1 param-stddev=0 use-natural-gradient=false learning-rate-factor=0
+	component-node name=MAPLHN.std.$layer component=MAPLHN.std.$layer input=feature2
+EOF
+
+cat <<EOF >> $dir/configs/change.config	
+	# compared to BLHN, no random effect and no frame counts are used
+	component name=MAPLHN.vec.$layer type=BayesVecKLGaussianComponent output-dim=$dim_tmp2 input-dim=$dim_tmp2_x4 KL-scale=${KL} input-frame-scale=false rand-per-frame=false KL-output=false test-mode=false fix-rand-val=true
+	component-node name=MAPLHN.vec.$layer component=MAPLHN.vec.$layer input=Append(MAPLHN.mean.$layer, MAPLHN.std.$layer, MAPLHN.prior_mean.$prior_layer, MAPLHN.prior_std.$prior_layer)
+	component name=MAPLHN.multiply.$layer type=FramewiseLinearComponent input-dim=$dim_tmp2_plus_dim_tmp output-dim=$dim_tmp feat-dim=$dim_tmp
+	component-node name=MAPLHN.multiply.$layer component=MAPLHN.multiply.$layer input=Append(tdnnf$layer.linear,MAPLHN.linear.$layer)
+	component-node name=$layer.affine component=$layer.affine input=MAPLHN.multiply.$layer
 EOF
 
 done
@@ -157,7 +212,11 @@ if [ $stage -le 1 ]; then
     --feat-dir data/${adapt_set} \
     --lat-dir $label_lat_dir \
     --dir $dir || exit 1;
-	
+
+  mv $dir/final.mdl $dir/final_ori.mdl
+  nnet3-am-copy --binary=false $dir/final_ori.mdl - | \
+   sed "s/<TestMode> F/<TestMode> T/g" > $dir/final.mdl
+
   nnet3-am-info $dir/final.mdl > $dir/final.mdl.info
 fi
 

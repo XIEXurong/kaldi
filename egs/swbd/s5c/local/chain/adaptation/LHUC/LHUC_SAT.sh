@@ -7,26 +7,29 @@ stage=0
 train_stage=-10
 get_egs_stage=-10
 baseline=cnn_tdnn_iv_1a_hires_sp
-adapt_ivector_dir=exp/nnet3/ivectors_eval2000
+adapt_ivector_dir=exp/nnet3/ivectors_train_nodup_sp
 test_ivector_dir=exp/nnet3/ivectors_eval2000
-epoch_num=7
-lr1=0.01
-lr2=0.01
+epoch_num=6
+lr1=0.00025
+lr2=0.000025
+num_jobs_init=3
+num_jobs_final=16
 num_chunk=64
-param_alpha_init=1.0
-param_beta_init=0.0
+param_init=0.0
+act="Sig" # Sig, Idnt, Exp
 tag= # any other marks
 
 decode_iter=
 decode_nj=50
 
 # training options
-frames_per_eg=150,100,50,20,10,5
+frames_per_eg=150,110,100
 remove_egs=false
-xent_regularize=1.0
+xent_regularize=0.1
+dropout_schedule='0,0@0.20,0.5@0.50,0'
 
-adapted_layer="cnn1"
-layer_dim="2560" # should be corresponding to the $adapted_layer
+adapted_layer="cnn1 tdnnf7 tdnnf8 tdnnf9 tdnnf10 tdnnf11 tdnnf12"
+layer_dim="2560 1536 1536 1536 1536 1536 1536" # should be corresponding to the $adapted_layer
 input_config="component-node name=idct component=idct input=feature1" # cnn-tdnn, for tdnn, it can be "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))"
 input_dim=41
 common_egs_dir=
@@ -45,14 +48,15 @@ layer_num1=`echo ${#layer_dim_array[*]}`
 
 [[ "$layer_num" == "$layer_num1" ]] || exit 1;
 
-adapt_set=$1 # eval2000_hires_spk_sub20
-label_lat_dir=$2 # label_lat_dir=exp/chain/cnn_tdnn_iv_1a_hires_sp/decode_eval2000_hires_sw1_fsh_fg/1BEST_lat/score_10_0.0
-decode_set=$3 # eval2000_hires_spk
+adapt_set=$1 # train_nodup_sp_hires_spk
+label_lat_dir=$2 # exp/tri4_lats_nodup_sp
+treedir=$4 # exp/chain/tri5_7d_tree_sp
+decode_set=$4 # eval2000_hires_spk
 
-version=_PAct${tag}_adaptlayer${layer_num}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
+version=_LHUC_SAT${tag}_adaptlayer${layer_num}_act${act}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
 
 dirbase=exp/chain/${baseline}
-dir=exp/chain/adaptation/PAct/${baseline}${version}
+dir=exp/chain/adaptation/LHUC/${baseline}${version}
 
 if [ $stage -le 0 ]; then
 
@@ -77,8 +81,15 @@ EOF
 
 layer_num_minus1=$(awk "BEGIN{print($layer_num-1)}")
 
-act_component="type=NoOpComponent"
-
+act_component="type=SigmoidComponent self-repair-scale=0" # Sig
+lhuc_scale=2.0
+if [[ "$act" == "Idnt" ]]; then
+  act_component="type=NoOpComponent"
+  lhuc_scale=1.0
+elif [[ "$act" == "Exp" ]]; then
+  act_component="type=ExpComponent self-repair-scale=0"
+  lhuc_scale=1.0
+fi
 
 # adaptation in each layer
 for i in `seq 0 $layer_num_minus1`; do
@@ -86,49 +97,28 @@ for i in `seq 0 $layer_num_minus1`; do
 layer=`echo ${adapted_layer_array[i]}`
 dim_tmp=`echo ${layer_dim_array[i]}`
 dim_tmp_x2=$(awk "BEGIN{print(2*$dim_tmp)}")
-dim_tmp_x4=$(awk "BEGIN{print(4*$dim_tmp)}")
 
 cat <<EOF >> $dir/configs/change.config	
-	# PReLU
-	component name=$layer.neg_relu type=RectifiedLinearComponent dim=$dim_tmp self-repair-scale=0
-	component-node name=$layer.neg_relu component=$layer.neg_relu input=Scale(-1.0, $layer.affine)
-	
-	# alpha
-	component name=PAct.alpha.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_alpha_init param-stddev=0 use-natural-gradient=false
-	component-node name=PAct.alpha.$layer component=PAct.alpha.$layer input=feature2
-	
-	# beta
-	component name=PAct.beta.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_beta_init param-stddev=0 use-natural-gradient=false
-	component-node name=PAct.beta.$layer component=PAct.beta.$layer input=feature2
-	
-	component name=PAct.product.$layer type=ElementwiseProductComponent output-dim=$dim_tmp_x2 input-dim=$dim_tmp_x4
-	component-node name=PAct.product.$layer component=PAct.product.$layer input=Append($layer.relu, Scale(-1.0, $layer.neg_relu), PAct.alpha.$layer, PAct.beta.$layer)
-	component name=PAct.sum.$layer type=SumBlockComponent output-dim=$dim_tmp input-dim=$dim_tmp_x2
-	component-node name=PAct.sum.$layer component=PAct.sum.$layer input=PAct.product.$layer
-	
-	component-node name=$layer.batchnorm component=$layer.batchnorm input=PAct.sum.$layer
+	component name=LHUC.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_init param-stddev=0 use-natural-gradient=true
+	component-node name=LHUC.linear.$layer component=LHUC.linear.$layer input=feature2
+	component name=LHUC.act.$layer $act_component dim=$dim_tmp
+	component-node name=LHUC.act.$layer component=LHUC.act.$layer input=LHUC.linear.$layer
+	component name=LHUC.product.$layer type=ElementwiseProductComponent output-dim=$dim_tmp input-dim=$dim_tmp_x2
+	component-node name=LHUC.product.$layer component=LHUC.product.$layer input=Append($layer.relu, Scale($lhuc_scale, LHUC.act.$layer))
+	component-node name=$layer.batchnorm component=$layer.batchnorm input=LHUC.product.$layer
 	
 EOF
 
 done
 
-# use cross entropy only
-cat <<EOF >> $dir/configs/change.config
-	component name=no_mmi type=NoOpComponent dim=256 backprop-scale=0.0
-	component-node name=no_mmi component=no_mmi input=prefinal-l
-	component-node name=prefinal-chain.affine component=prefinal-chain.affine input=no_mmi
-EOF
-
-nnet3-am-copy --raw --binary=false --edits="set-learning-rate-factor learning-rate-factor=0" $dirbase/final.mdl - | \
- sed "s/<TestMode> F/<TestMode> T/g" | sed "s/BatchNormComponent/BatchNormTestComponent/g" | sed "s/<OrthonormalConstraint> [^ ]* /<OrthonormalConstraint> 0/g" | \
- nnet3-copy --nnet-config=$dir/configs/change.config - $dir/0.raw
+nnet3-copy --nnet-config=$dir/configs/change.config $dirbase/0.raw $dir/0.raw
 
 nnet3-info $dir/0.raw > $dir/0.raw.info
 
 fi
 
 if [ $stage -le 1 ]; then
-  local/chain/adaptation/train_adapt.py --stage $train_stage \
+  steps/nnet3/chain/train.py --stage $train_stage \
     --cmd "$train_cmd" \
 	--feat.online-ivector-dir $adapt_ivector_dir \
     --feat.cmvn-opts "--norm-means=false --norm-vars=false" \
@@ -137,7 +127,7 @@ if [ $stage -le 1 ]; then
     --chain.l2-regularize 0.0 \
     --chain.apply-deriv-weights false \
     --chain.lm-opts="--num-extra-lm-states=2000" \
-	--chain.alignment-subsampling-factor 1 \
+	--trainer.dropout-schedule $dropout_schedule \
     --trainer.add-option="--optimization.memory-compression-level=2" \
     --egs.dir "$common_egs_dir" \
     --egs.stage $get_egs_stage \
@@ -146,18 +136,29 @@ if [ $stage -le 1 ]; then
     --trainer.num-chunk-per-minibatch ${num_chunk} \
     --trainer.frames-per-iter 1500000 \
     --trainer.num-epochs $epoch_num \
-    --trainer.optimization.num-jobs-initial 1 \
-    --trainer.optimization.num-jobs-final 1 \
+    --trainer.optimization.num-jobs-initial $num_jobs_init \
+    --trainer.optimization.num-jobs-final $num_jobs_final \
     --trainer.optimization.initial-effective-lrate $lr1 \
     --trainer.optimization.final-effective-lrate $lr2 \
-	--trainer.optimization.do-final-combination false \
     --trainer.max-param-change 2.0 \
 	--trainer.input-model $dir/0.raw \
     --cleanup.remove-egs $remove_egs \
     --feat-dir data/${adapt_set} \
+	--tree-dir $treedir \
     --lat-dir $label_lat_dir \
     --dir $dir || exit 1;
-	
+  
+  # reset the speaker-dependent parameters
+  mv $dir/final.mdl $dir/final_ori.mdl
+for i in `seq 0 $layer_num_minus1`; do
+layer=`echo ${adapted_layer_array[i]}`
+cat <<EOF >> $dir/configs/change_final.config
+	component name=LHUC.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_init param-stddev=0 use-natural-gradient=false
+EOF
+done
+  nnet3-am-copy --nnet-config=$dir/configs/change_final.config $dir/final_ori.mdl $dir/final.mdl
+  
+  nnet3-am-info $dir/final_ori.mdl > $dir/final_ori.mdl.info
   nnet3-am-info $dir/final.mdl > $dir/final.mdl.info
 fi
 
