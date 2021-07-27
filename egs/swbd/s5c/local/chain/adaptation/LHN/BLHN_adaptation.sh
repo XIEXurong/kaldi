@@ -138,6 +138,7 @@ if [ ! -z $prior_std_file ]; then
   prior_std_config="vector=$prior_std_file_tmp"
 fi
 
+# Each dim x dim dimensional transforming matrices of LHN for one speaker is implemented as a dim x dim dimensional vector
 if [[ "$i" < "${#prior_mean_array[*]}" || "$i" < "${#prior_mean_file_array[*]}" || "$i" < "${#prior_std_array[*]}" || "$i" < "${#prior_std_file_array[*]}" ]]; then
   prior_layer=$layer
 cat <<EOF >> $dir/configs/change.config
@@ -174,7 +175,7 @@ if [[ "$log_std" == "true" ]]; then
   std_ori=std_exp
 cat <<EOF >> $dir/configs/change.config
     component name=BLHN.std_exp.$layer type=ExpComponent dim=$tie_dim self-repair-scale=0
-	component-node name=BLHN.std_exp.$layer component=BLHN.std_exp.$.$layer input=BLHN.std_ori.$layer
+	component-node name=BLHN.std_exp.$layer component=BLHN.std_exp.$layer input=BLHN.std_ori.$layer
 EOF
 fi
 
@@ -189,7 +190,7 @@ cat <<EOF >> $dir/configs/change.config
 	component name=BLHN.vec.$layer type=BayesVecKLGaussianComponent output-dim=$dim_tmp2 input-dim=$dim_tmp2_x4plus1 KL-scale=${KL} input-frame-scale=true inv-frame-scale=true rand-per-frame=false KL-output=false test-mode=false
 	component-node name=BLHN.vec.$layer component=BLHN.vec.$layer input=Append(BLHN.mean.$layer, BLHN.std.$layer, BLHN.prior_mean.$prior_layer, BLHN.prior_std.$prior_layer, BLHN.count)
 	component name=BLHN.multiply.$layer type=FramewiseLinearComponent input-dim=$dim_tmp2_plus_dim_tmp output-dim=$dim_tmp feat-dim=$dim_tmp
-	component-node name=BLHN.multiply.$layer component=BLHN.multiply.$layer input=Append(tdnnf$layer.linear,BLHN.linear.$layer)
+	component-node name=BLHN.multiply.$layer component=BLHN.multiply.$layer input=Append($layer.linear,BLHN.vec.$layer)
 	component-node name=$layer.affine component=$layer.affine input=BLHN.multiply.$layer
 EOF
 

@@ -173,7 +173,7 @@ if [[ "$log_std" == "true" ]]; then
   std_ori=std_exp
 cat <<EOF >> $dir/configs/change.config
     component name=BHUB.std_exp.$layer type=ExpComponent dim=$tie_dim self-repair-scale=0
-	component-node name=BHUB.std_exp.$layer component=BHUB.std_exp.$.$layer input=BHUB.std_ori.$layer
+	component-node name=BHUB.std_exp.$layer component=BHUB.std_exp.$layer input=BHUB.std_ori.$layer
 EOF
 fi
 

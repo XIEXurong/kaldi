@@ -90,11 +90,12 @@ if [ ! -z $param_init_file ]; then
   param_init_config="matrix=${param_init_file_array[i]}"
 fi
 
+# Each dim x dim dimensional transforming matrices of LHN for one speaker is implemented as a dim x dim dimensional vector
 cat <<EOF >> $dir/configs/change.config	
 	component name=LHN.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp2 col-num=$spk_num l2-regularize=0.00 use-natural-gradient=false $param_init_config
 	component-node name=LHN.linear.$layer component=LHN.linear.$layer input=feature2
 	component name=LHN.multiply.$layer type=FramewiseLinearComponent input-dim=$dim_tmp2_plus_dim_tmp output-dim=$dim_tmp feat-dim=$dim_tmp
-	component-node name=LHN.multiply.$layer component=LHN.multiply.$layer input=Append(tdnnf$layer.linear,LHN.linear.$layer)
+	component-node name=LHN.multiply.$layer component=LHN.multiply.$layer input=Append($layer.linear,LHN.linear.$layer)
 	component-node name=$layer.affine component=$layer.affine input=LHN.multiply.$layer
 	
 EOF

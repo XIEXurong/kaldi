@@ -235,10 +235,10 @@ if [[ "$log_std" == "true" ]]; then
 cat <<EOF >> $dir/configs/change.config
     # alpha std
 	component name=BPAct.alpha.std_exp.$layer type=ExpComponent dim=$tie_dim self-repair-scale=0
-	component-node name=BPAct.alpha.std_exp.$layer component=BPAct.alpha.std_exp.$.$layer input=BPAct.alpha.std_ori.$layer
+	component-node name=BPAct.alpha.std_exp.$layer component=BPAct.alpha.std_exp.$layer input=BPAct.alpha.std_ori.$layer
 	# beta std
 	component name=BPAct.beta.std_exp.$layer type=ExpComponent dim=$tie_dim self-repair-scale=0
-	component-node name=BPAct.beta.std_exp.$layer component=BPAct.beta.std_exp.$.$layer input=BPAct.beta.std_ori.$layer
+	component-node name=BPAct.beta.std_exp.$layer component=BPAct.beta.std_exp.$layer input=BPAct.beta.std_ori.$layer
 EOF
 fi
 

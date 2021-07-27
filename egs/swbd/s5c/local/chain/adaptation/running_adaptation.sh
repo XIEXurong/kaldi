@@ -231,6 +231,9 @@ done
 
 # MAPLHN adaptation
 
+# The matrices of prior exp/chain/adaptation/LHN/prior_mean.mat and exp/chain/adaptation/LHN/prior_std.mat should be generated first using (a subset of) the training set.
+# Alternatively, identity matrix can be used as mean and a global std should be given.
+
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
 if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
@@ -247,7 +250,7 @@ bash local/chain/adaptation/LHN/MAPLHN_adaptation.sh \
  --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
  --tag "_eval2000$N" \
  --epoch-num 7 --lr1 0.001 --lr2 0.001 --num-chunk 64 \
- --prior-mean-file "exp/chain/prior_mean.mat" --prior-std-file "exp/chain/prior_std.mat" \
+ --prior-mean-file "exp/chain/adaptation/LHN/prior_mean.mat" --prior-std-file "exp/chain/adaptation/LHN/prior_std.mat" \
  eval2000_hires_spk$N \
  exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk
@@ -255,6 +258,9 @@ done
 
 
 # BLHN adaptation
+
+# The matrices of prior exp/chain/adaptation/LHN/prior_mean.mat and exp/chain/adaptation/LHN/prior_std.mat should be generated first using (a subset of) the training set.
+# Alternatively, identity matrix can be used as mean and a global std should be given.
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
@@ -272,7 +278,7 @@ bash local/chain/adaptation/LHN/BLHN_adaptation.sh \
  --input-config "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))" \
  --tag "_eval2000$N" \
  --epoch-num 7 --lr1 0.001 --lr2 0.001 --num-chunk 64 --log-std true --param-std-init -2.3 \
- --prior-mean-file "exp/chain/prior_mean.mat" --prior-std-file "exp/chain/prior_std.mat" \
+ --prior-mean-file "exp/chain/adaptation/LHN/prior_mean.mat" --prior-std-file "exp/chain/adaptation/LHN/prior_std.mat" \
  eval2000_hires_spk$N \
  exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg/1BEST_lat/score_10_0.0 \
  eval2000_hires_spk

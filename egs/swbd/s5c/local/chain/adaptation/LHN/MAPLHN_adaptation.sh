@@ -130,6 +130,7 @@ if [ ! -z $prior_std_file ]; then
   prior_std_config="vector=$prior_std_file_tmp"
 fi
 
+# Each dim x dim dimensional transforming matrices of LHN for one speaker is implemented as a dim x dim dimensional vector
 if [[ "$i" < "${#prior_mean_array[*]}" || "$i" < "${#prior_mean_file_array[*]}" || "$i" < "${#prior_std_array[*]}" || "$i" < "${#prior_std_file_array[*]}" ]]; then
   prior_layer=$layer
 cat <<EOF >> $dir/configs/change.config
@@ -156,12 +157,12 @@ cat <<EOF >> $dir/configs/change.config
 	component-node name=MAPLHN.std.$layer component=MAPLHN.std.$layer input=feature2
 EOF
 
+# compared to BLHN, no random effect and no frame counts are used
 cat <<EOF >> $dir/configs/change.config	
-	# compared to BLHN, no random effect and no frame counts are used
 	component name=MAPLHN.vec.$layer type=BayesVecKLGaussianComponent output-dim=$dim_tmp2 input-dim=$dim_tmp2_x4 KL-scale=${KL} input-frame-scale=false rand-per-frame=false KL-output=false test-mode=false fix-rand-val=true
 	component-node name=MAPLHN.vec.$layer component=MAPLHN.vec.$layer input=Append(MAPLHN.mean.$layer, MAPLHN.std.$layer, MAPLHN.prior_mean.$prior_layer, MAPLHN.prior_std.$prior_layer)
 	component name=MAPLHN.multiply.$layer type=FramewiseLinearComponent input-dim=$dim_tmp2_plus_dim_tmp output-dim=$dim_tmp feat-dim=$dim_tmp
-	component-node name=MAPLHN.multiply.$layer component=MAPLHN.multiply.$layer input=Append(tdnnf$layer.linear,MAPLHN.linear.$layer)
+	component-node name=MAPLHN.multiply.$layer component=MAPLHN.multiply.$layer input=Append($layer.linear,MAPLHN.vec.$layer)
 	component-node name=$layer.affine component=$layer.affine input=MAPLHN.multiply.$layer
 EOF
 
