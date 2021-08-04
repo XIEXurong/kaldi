@@ -5,7 +5,7 @@ which is originally proposed in the paper:
 
 The codes are mainly based on src/nnet3, please find the running examples in egs/swbd/s5c.
 
-                                                                                             --By Xurong Xie
+                                                                          --By Xurong Xie
                                                                                              
 #################################################################################################
 # The original readme
