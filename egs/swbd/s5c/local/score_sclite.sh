@@ -88,7 +88,7 @@ if [ $stage -le 2 ]; then
   for wip in $(echo $word_ins_penalty | sed 's/,/ /g'); do
     $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.LMWT.${wip}.log \
       cp $data/stm $dir/score_LMWT_${wip}/ '&&' \
-      $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm $dir/score_LMWT_${wip}/${name}.ctm || exit 1;
+      $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm $dir/score_LMWT_${wip}/${name}.ctm; # || exit 1;
   done
 fi
 
@@ -101,7 +101,7 @@ case "$name" in
         $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.swbd.LMWT.${wip}.log \
           grep -v '^en_' $data/stm '>' $dir/score_LMWT_${wip}/stm.swbd '&&' \
           grep -v '^en_' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.swbd '&&' \
-          $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbd $dir/score_LMWT_${wip}/${name}.ctm.swbd || exit 1;
+          $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbd $dir/score_LMWT_${wip}/${name}.ctm.swbd; # || exit 1;
       done
     fi
     # Score only the, callhome part...
@@ -110,7 +110,7 @@ case "$name" in
         $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.callhm.LMWT.${wip}.log \
           grep -v '^sw_' $data/stm '>' $dir/score_LMWT_${wip}/stm.callhm '&&' \
           grep -v '^sw_' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.callhm '&&' \
-          $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.callhm $dir/score_LMWT_${wip}/${name}.ctm.callhm || exit 1;
+          $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.callhm $dir/score_LMWT_${wip}/${name}.ctm.callhm; # || exit 1;
       done
     fi
     ;;
@@ -122,7 +122,7 @@ rt03* )
       $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.swbd.LMWT.${wip}.log \
         grep -v '^fsh_' $data/stm '>' $dir/score_LMWT_${wip}/stm.swbd '&&' \
         grep -v '^fsh_' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.swbd '&&' \
-        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbd $dir/score_LMWT_${wip}/${name}.ctm.swbd || exit 1;
+        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbd $dir/score_LMWT_${wip}/${name}.ctm.swbd; # || exit 1;
     done
   fi
   # Score only the fisher part...
@@ -131,7 +131,37 @@ rt03* )
       $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.fsh.LMWT.${wip}.log \
         grep -v '^sw_' $data/stm '>' $dir/score_LMWT_${wip}/stm.fsh '&&' \
         grep -v '^sw_' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.fsh '&&' \
-        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.fsh $dir/score_LMWT_${wip}/${name}.ctm.fsh || exit 1;
+        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.fsh $dir/score_LMWT_${wip}/${name}.ctm.fsh; # || exit 1;
+    done
+  fi
+ ;;
+ rt02* )
+
+  # Score only the swbd1 part...
+  if [ $stage -le 3 ]; then
+    for wip in $(echo $word_ins_penalty | sed 's/,/ /g'); do
+      $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.swbd1.LMWT.${wip}.log \
+        grep -E -v '"^sw_3|^sw_4"' $data/stm '>' $dir/score_LMWT_${wip}/stm.swbd1 '&&' \
+        grep -E -v '"^sw_3|^sw_4"' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.swbd1 '&&' \
+        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbd1 $dir/score_LMWT_${wip}/${name}.ctm.swbd1; # || exit 1;
+    done
+  fi
+  # Score only the swbd2 part...
+  if [ $stage -le 3 ]; then
+    for wip in $(echo $word_ins_penalty | sed 's/,/ /g'); do
+      $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.swbd2.LMWT.${wip}.log \
+        grep -E -v '"^sw4|^sw_4"' $data/stm '>' $dir/score_LMWT_${wip}/stm.swbd2 '&&' \
+        grep -E -v '"^sw4|^sw_4"' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.swbd2 '&&' \
+        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbd2 $dir/score_LMWT_${wip}/${name}.ctm.swbd2; # || exit 1;
+    done
+  fi
+  # Score only the swbdc part...
+  if [ $stage -le 3 ]; then
+    for wip in $(echo $word_ins_penalty | sed 's/,/ /g'); do
+      $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.swbdc.LMWT.${wip}.log \
+        grep -E -v '"^sw4|^sw_3"' $data/stm '>' $dir/score_LMWT_${wip}/stm.swbdc '&&' \
+        grep -E -v '"^sw4|^sw_3"' $dir/score_LMWT_${wip}/${name}.ctm '>' $dir/score_LMWT_${wip}/${name}.ctm.swbdc '&&' \
+        $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT_${wip}/stm.swbdc $dir/score_LMWT_${wip}/${name}.ctm.swbdc; # || exit 1;
     done
   fi
  ;;
