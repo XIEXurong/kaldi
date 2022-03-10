@@ -44,6 +44,8 @@ perl local/chain/adaptation/find_pdf.pl data/eval2000_hires_spk_sub${N}/text_all
 perl utils/data/get_utt2dur.sh data/eval2000_hires_spk_sub${N}
 mv data/eval2000_hires_spk_sub${N}/utt2dur data/eval2000_hires_spk_sub${N}/utt2dur_all
 perl local/chain/adaptation/find_pdf.pl data/eval2000_hires_spk_sub${N}/utt2dur_all data/eval2000_hires_spk_sub${N}/feats.scp > data/eval2000_hires_spk_sub${N}/utt2dur
+mv data/eval2000_hires_spk_sub${N}/spk2utt data/eval2000_hires_spk_sub${N}/spk2utt_all
+perl local/chain/adaptation/utt2spk_to_spk2utt.pl < data/eval2000_hires_spk_sub${N}/utt2spk > data/eval2000_hires_spk_sub${N}/spk2utt
 
 done
 
@@ -51,7 +53,7 @@ done
 # Decode the subsets and generate 1-best lattices
 
 bash local/chain/adaptation/decode_all_ivector_subN.sh --LM fsh_fg --data-dir data \
---exp-dir exp --ext _fbk_40 eval2000 \
+--exp-dir exp --ext _hires eval2000 \
 exp/chain/tdnn_7q_hires_sp_subN exp/chain/tdnn_7q_hires_sp
 
 for N in _sub5 _sub10 _sub20 _sub40; do
@@ -66,7 +68,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -89,7 +91,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -114,7 +116,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -137,7 +139,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -162,7 +164,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -185,7 +187,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -210,7 +212,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -236,7 +238,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
@@ -264,7 +266,7 @@ done
 
 for N in _sub5 _sub10 _sub20 _sub40 ""; do
 
-if [ ! -a exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
+if [ ! -d exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg ]; then
   ln -s $PWD/exp/chain/tdnn_7q_hires_sp_subN/decode_eval2000_hires_spk${N}_sw1_fsh_fg exp/chain/tdnn_7q_hires_sp/decode_eval2000_hires${N}_sw1_fsh_fg
 fi
 
