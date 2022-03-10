@@ -24,12 +24,15 @@ counts = dict()
 eos = "</s>"
 counts[eos] = 0
 for line in sys.stdin:
-    tokens = line.strip("\n").strip(" ").split(" ")
-    for token in tokens:
-        if token not in counts:
-            counts[token] = 0
-        counts[token] += 1
-    counts[eos] += 1
+    # tokens = line.strip("\n").strip(" ").split(" ")
+    line1 = line.strip("\n").strip(" ") ######################################
+    tokens = line1.split(" ") ######################################
+    if len(line1) != 0: ######################################
+        for token in tokens:
+            if token not in counts:
+                counts[token] = 0
+            counts[token] += 1
+        counts[eos] += 1
 for word, count in counts.items():
     print(f"{word} {count}")
 ' | sort > $counts_file

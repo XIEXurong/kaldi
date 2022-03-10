@@ -26,6 +26,8 @@ test=false # Activate a testing option.
 stage=1 # Stage of this script, for partial reruns.
 skip_scoring=false
 keep_ali=true
+scoring_opts=
+tied=true
 # End configuration section.
 
 echo "$0 $*"  # Print the command line for logging
@@ -184,6 +186,11 @@ if [ $stage -le 5 ]; then
   done
 fi
 
+tied_opt=
+if $tied; then
+  tied_opt="--tied"
+fi
+
 if [ $stage -le 6 ]; then
   echo "$0: computing neural LM scores of the N-best list in parallel for each lattice."
   $cmd JOB=1:$nj $dir/log/compute_sentence_scores.JOB.log \
@@ -197,7 +204,7 @@ if [ $stage -le 6 ]; then
         --nhid $hidden_dim \
         --nlayers $nlayers \
         --nhead $nhead \
-        --oov "$oov_symbol"
+        --oov "$oov_symbol" $tied_opt
 fi
 
 if [ $stage -le 7 ]; then
@@ -223,7 +230,7 @@ if ! $skip_scoring ; then
   echo "scoring..."
   [ ! -x local/score.sh ] && \
     echo "Not scoring because local/score.sh does not exist or not executable." && exit 1;
-  local/score.sh --cmd "$cmd" $data $oldlang $dir ||
+  local/score.sh --cmd "$cmd" $scoring_opts $data $oldlang $dir ||
     { echo "$0: Scoring failed. (ignore by '--skip-scoring true')"; exit 1; }
 fi
 

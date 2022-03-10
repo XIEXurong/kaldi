@@ -28,6 +28,7 @@ normalize=false # If true, we add a normalization step to the output of the RNNL
                 # could be found at http://www.danielpovey.com/files/2018_icassp_rnnlm.pdf
 lattice_prune_beam=8 # Beam used in pruned lattice composition
                      # This option affects speed and how large the composed lattice may be
+scoring_opts=
 
 # End configuration section.
 
@@ -113,8 +114,8 @@ $cmd JOB=1:$nj $outdir/log/rescorelm.JOB.log \
 if ! $skip_scoring ; then
   err_msg="$0: Not scoring because local/score.sh does not exist or not executable."
   [ ! -x local/score.sh ] && echo $err_msg && exit 1;
-  echo local/score.sh --cmd "$cmd" $data $oldlang $outdir
-  local/score.sh --cmd "$cmd" $data $oldlang $outdir
+  echo local/score.sh --cmd "$cmd" $scoring_opts $data $oldlang $outdir
+  local/score.sh --cmd "$cmd" $scoring_opts $data $oldlang $outdir
 else
   echo "$0: Not scoring because --skip-scoring was specified."
 fi

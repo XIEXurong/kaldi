@@ -11,3 +11,7 @@ from .gru import *
 from .stats_layer import *
 from .trivial_layers import *
 from .composite_layers import *
+from .basic_LHUC_layers import * #################################################
+from .basic_BLHUC_layers import * #################################################
+from .basic_BLHUC_untied_layers import * #################################################
+from .added_components import * #################################################

@@ -21,6 +21,8 @@ oov_symbol="'<unk>'"
 cmd=run.pl
 stage=0
 skip_scoring=false
+scoring_opts=
+tied=true
 # End configuration section.
 
 echo "$0 $*" # Print the command line for logging
@@ -97,6 +99,11 @@ if [ $stage -le 1 ]; then
   done
 fi
 
+tied_opt=
+if $tied; then
+  tied_opt="--tied"
+fi
+
 if [ $stage -le 2 ]; then
   echo "$0: computing neural LM scores of the minimal list of hypotheses."
   $cmd JOB=1:$nj $dir/log/compute_sentence_scores.JOB.log \
@@ -110,7 +117,7 @@ if [ $stage -le 2 ]; then
      --nhid $hidden_dim \
      --nlayers $nlayers \
      --nhead $nhead \
-     --oov "$oov_symbol"
+     --oov "$oov_symbol" $tied_opt
 fi
 
 if [ $stage -le 3 ]; then
@@ -147,7 +154,7 @@ fi
 if ! $skip_scoring ; then
   err_msg="$0: Not scoring because local/score.sh does not exist or not executable."
   [ ! -x local/score.sh ] && echo $err_msg && exit 1;
-  local/score.sh --cmd "$cmd" $data $oldlang $dir
+  local/score.sh --cmd "$cmd" $scoring_opts $data $oldlang $dir
 else
   echo "$0: Not scoring because --skip-scoring was specified."
 fi

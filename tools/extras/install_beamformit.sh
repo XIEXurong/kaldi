@@ -26,7 +26,7 @@ fi
 
 # building beamformit
 [ ! -d ./BeamformIt ] &&
-  $GIT clone https://github.com/xanguera/BeamformIt
+  $GIT clone git://github.com/xanguera/BeamformIt
 (
   cd BeamformIt
   $GIT pull

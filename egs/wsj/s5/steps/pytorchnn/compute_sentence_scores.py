@@ -270,6 +270,8 @@ def main():
                         help='Out of vocabulary word.')
     parser.add_argument('--sent-boundary', type=str, default='<s>',
                         help='Sentence boundary symbol.')
+    parser.add_argument('--tied', action='store_true',
+                    help='tie the word embedding and softmax weights')
     args = parser.parse_args()
     assert os.path.exists(args.infile), "Path for input word sequences does not exist."
     assert os.path.exists(args.vocabulary), "Vocabulary path does not exist."
@@ -283,10 +285,10 @@ def main():
     if args.model == 'Transformer':
         model = model.TransformerModel(ntokens, args.emsize, args.nhead,
                                        args.nhid, args.nlayers,
-                                       activation="gelu", tie_weights=True)
+                                       activation="gelu", tie_weights=args.tied)
     else:
         model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid,
-                               args.nlayers, tie_weights=True)
+                               args.nlayers, tie_weights=args.tied)
     with open(args.model_path, 'rb') as f:
         model.load_state_dict(torch.load(f, map_location=lambda storage, loc: storage))
         if args.model in ['RNN_TANH', 'RNN_RELU', 'LSTM', 'GRU']:

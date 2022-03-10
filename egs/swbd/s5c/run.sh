@@ -19,7 +19,7 @@ set -e # exit on error
 has_fisher=true
 
 if [ $stage -le 0 ]; then
-  local/swbd1_data_download.sh /export/corpora3/LDC/LDC97S62
+  local/swbd1_data_download.sh /mnt/d/xxr/data/swbd/LDC97S62
   # local/swbd1_data_download.sh /mnt/matylda2/data/SWITCHBOARD_1R2 # BUT,
 fi
 

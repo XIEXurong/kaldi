@@ -25,6 +25,7 @@ normalize=false # If true, we add a normalization step to the output of the RNNL
                 # as in our RNNLM setup, a properly trained network would automatically
                 # have its normalization term close to 1. The details of this
                 # could be found at http://www.danielpovey.com/files/2018_icassp_rnnlm.pdf
+scoring_opts=
 
 # End configuration section.
 
@@ -120,7 +121,7 @@ fi
 if ! $skip_scoring ; then
   err_msg="$0: Not scoring because local/score.sh does not exist or not executable."
   [ ! -x local/score.sh ] && echo $err_msg && exit 1;
-  local/score.sh --cmd "$cmd" $data $oldlang $outdir
+  local/score.sh --cmd "$cmd" $scoring_opts $data $oldlang $outdir
 else
   echo "$0: Not scoring because --skip-scoring was specified."
 fi

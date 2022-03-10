@@ -86,7 +86,19 @@ config_to_layer = {
         'dim-range-component': xlayers.XconfigDimRangeComponent,
         'offset-component':  xlayers.XconfigPerElementOffsetComponent,
         'combine-feature-maps-layer': xlayers.XconfigCombineFeatureMapsLayer,
-        'delta-layer': xlayers.XconfigDeltaLayer
+        'delta-layer': xlayers.XconfigDeltaLayer,
+        'dim-range-component-init': xlayers.XconfigDimRangeComponentInit, ######################################################
+        'elementwise-product-component': xlayers.XconfigElementwiseProductComponent, ######################################################
+        'simple-component': xlayers.XconfigSimpleComponent, ######################################################
+        'composite-component': xlayers.XconfigCompositeComponent, ######################################################
+        'relu-lhuc-batchnorm-dropout-layer': xlayers.XconfigReluLHUCBatchnormDropoutLayer, ######################################################
+        'tdnnf-lhuc-layer': xlayers.XconfigTdnnfLHUCLayer, ######################################################
+        'relu-blhuc-batchnorm-dropout-layer': xlayers.XconfigReluBLHUCBatchnormDropoutLayer, ######################################################
+        'relu-blhuc1-batchnorm-dropout-layer': xlayers.XconfigReluBLHUC1BatchnormDropoutLayer, ######################################################
+        'tdnnf-blhuc-layer': xlayers.XconfigTdnnfBLHUCLayer, ######################################################
+        'relu-blhucuntied-batchnorm-dropout-layer': xlayers.XconfigReluBLHUCUntiedBatchnormDropoutLayer, ######################################################
+        'relu-blhucuntied1-batchnorm-dropout-layer': xlayers.XconfigReluBLHUCUntied1BatchnormDropoutLayer, ######################################################
+        'tdnnf-blhucuntied-layer': xlayers.XconfigTdnnfBLHUCUntiedLayer ######################################################
 }
 
 # Turn a config line and a list of previous layers into

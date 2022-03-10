@@ -176,6 +176,7 @@ while [ $x -lt $num_iters ]; do
       # to use for each job is a little complex, so we spawn each one separately.
       [ -f $dir/.train_error ] && rm $dir/.train_error
       for n in $(seq $this_num_jobs); do
+        sleep 3
         k=$[$num_splits_processed + $n - 1]; # k is a zero-based index that we'll derive
                                                # the other indexes from.
         split=$[($k%$num_splits)+1]; # work out the 1-based split index.
