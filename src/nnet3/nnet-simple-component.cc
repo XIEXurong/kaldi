@@ -4911,18 +4911,14 @@ void* DropoutMaskSimpleComponent::Propagate(const ComponentPrecomputedIndexes *i
                               const CuMatrixBase<BaseFloat> &in,
                               CuMatrixBase<BaseFloat> *out) const {
   
-  CuMatrix<BaseFloat> One_mix_all(in.NumRows(), dim_);
-  One_mix_all.Set(1.0);
-  
   if (!test_mode_) {
 	  CuMatrix<BaseFloat> rand_vec(1, dim_);
 	  if (!rand_per_frame_) {
 		  const_cast<CuRand<BaseFloat>&>(random_generator_).RandUniform(&rand_vec);
 		  rand_vec.Add(-rand_num_);
 		  rand_vec.ApplyHeaviside();
-		  out->CopyColsFromVec(rand_vec.Row(0));
+		  out->CopyRowsFromVec(rand_vec.Row(0));
 	  } else {
-		  CuMatrix<BaseFloat> rand_mat_tp(dim_, in.NumRows());
 		  const_cast<CuRand<BaseFloat>&>(random_generator_).RandUniform(out);
 		  out->Add(-rand_num_);
 		  out->ApplyHeaviside();
@@ -5537,7 +5533,42 @@ void* MinValueComponent::Propagate(const ComponentPrecomputedIndexes *indexes,
   out->CopyFromMat(in);
   if (scale_ != 1.0)
     out->Scale(scale_);
-  return NULL;
+  
+  int32 count = out->NumRows() + count_;
+  double sum = out->Sum() + sum_;
+  
+  if (count >= report_step_) {
+    KALDI_LOG << "The average of MinValueComponent is " << sum/count << " over " << count << " frames.\n";
+  }
+  
+  Memo *memo = new Memo;
+  
+  memo->count = count;
+  memo->sum = sum;
+  
+  return static_cast<void*>(memo);
+}
+
+void MinValueComponent::StoreStats(
+    const CuMatrixBase<BaseFloat> &in_value,
+    const CuMatrixBase<BaseFloat> &out_value,
+    void *memo_in) {
+  
+  Memo *memo = static_cast<Memo*>(memo_in);
+  KALDI_ASSERT(memo != NULL && "memo not passed into StoreStats");
+  
+  if (!test_mode_ && memo->count >= report_step_) {
+    count_ = 0;
+    sum_ = 0;
+  } else {
+    count_ = memo->count;
+    sum_ = memo->sum;
+  }
+}
+
+void MinValueComponent::ZeroStats() {
+  count_ = 0;
+  sum_ = 0;
 }
 
 void MinValueComponent::Backprop(const std::string &debug_info,
@@ -5554,7 +5585,13 @@ void MinValueComponent::Backprop(const std::string &debug_info,
 
 void MinValueComponent::InitFromConfig(ConfigLine *cfl) {
   scale_ = 1.0;
+  report_step_ = 50000;
+  count_ = 0;
+  sum_ = 0;
+  test_mode_ = false;
   cfl->GetValue("scale", &scale_);
+  cfl->GetValue("report-step", &report_step_);
+  cfl->GetValue("test-mode", &test_mode_);
   if (!cfl->GetValue("dim", &dim_) ||
       dim_ <= 0 || cfl->HasUnusedValues()) {
     KALDI_ERR << "Invalid initializer for layer of type "
@@ -5565,6 +5602,7 @@ void MinValueComponent::InitFromConfig(ConfigLine *cfl) {
 std::string MinValueComponent::Info() const {
   std::ostringstream stream;
   stream << Type() << ", dim=" << dim_;
+  stream << ", report-step=" << report_step_;
   if (scale_ != 1.0)
     stream << ", scale=" << scale_;
   return stream.str();
@@ -5576,6 +5614,10 @@ void MinValueComponent::Write(std::ostream &os, bool binary) const {
   WriteBasicType(os, binary, dim_);
   WriteToken(os, binary, "<BackpropScale>");
   WriteBasicType(os, binary, scale_);
+  WriteToken(os, binary, "<ReportStep>");
+  WriteBasicType(os, binary, report_step_);
+  WriteToken(os, binary, "<TestMode>");
+  WriteBasicType(os, binary, test_mode_);
   WriteToken(os, binary, "</MinValueComponent>");
 }
 
@@ -5584,7 +5626,13 @@ void MinValueComponent::Read(std::istream &is, bool binary) {
   ReadBasicType(is, binary, &dim_);
   ExpectToken(is, binary, "<BackpropScale>");
   ReadBasicType(is, binary, &scale_);
+  ExpectToken(is, binary, "<ReportStep>");
+  ReadBasicType(is, binary, &report_step_);
+  ExpectToken(is, binary, "<TestMode>");
+  ReadBasicType(is, binary, &test_mode_);
   ExpectToken(is, binary, "</MinValueComponent>");
+  count_ = 0;
+  sum_ = 0;
 }
 
 
@@ -8940,7 +8988,9 @@ void* LinearSelectColComponent::Propagate(const ComponentPrecomputedIndexes *ind
   int32 col_number = params_.NumCols();
   CuMatrix<BaseFloat> in_id;
   in_id.Resize(num_row,col_number);
-  in_id.SelectOneFromIdRow(in);
+  CuMatrix<BaseFloat> in_id_tmp(in);
+  in_id_tmp.Add(0.5);
+  in_id.SelectOneFromIdRow(in_id_tmp);
   out->AddMatMat(1.0, in_id, kNoTrans, params_, kTrans, 1.0);
   
   CuMatrix<BaseFloat> *memo = new CuMatrix<BaseFloat>(num_row, col_number);
@@ -10793,7 +10843,7 @@ void KLAdaptComponent::Read(std::istream &is, bool binary) {
 /////////////////////////////////////
 
 
-GumbelSoftmax::GumbelSoftmax(const GumbelSoftmax &other):
+GumbelSoftmaxComponent::GumbelSoftmaxComponent(const GumbelSoftmaxComponent &other):
     RandomComponent(other),
     dim_(other.dim_),
     temperature_(other.temperature_),
@@ -10802,12 +10852,12 @@ GumbelSoftmax::GumbelSoftmax(const GumbelSoftmax &other):
 	temperature_decrease_proportion_(other.temperature_decrease_proportion_),
 	temperature_decrease_minus_(other.temperature_decrease_minus_) { }
 
-Component* GumbelSoftmax::Copy() const {
-  GumbelSoftmax *ans = new GumbelSoftmax(*this);
+Component* GumbelSoftmaxComponent::Copy() const {
+  GumbelSoftmaxComponent *ans = new GumbelSoftmaxComponent(*this);
   return ans;
 }
 
-void GumbelSoftmax::Init(int32 dim, BaseFloat temperature,
+void GumbelSoftmaxComponent::Init(int32 dim, BaseFloat temperature,
                             bool apply_log, int32 temperature_decrease, BaseFloat temperature_decrease_proportion, BaseFloat temperature_decrease_minus) {
   temperature_ = temperature;
   apply_log_ = apply_log;
@@ -10817,7 +10867,7 @@ void GumbelSoftmax::Init(int32 dim, BaseFloat temperature,
   temperature_decrease_minus_ = temperature_decrease_minus;
 }
 
-void GumbelSoftmax::InitFromConfig(ConfigLine *cfl) {
+void GumbelSoftmaxComponent::InitFromConfig(ConfigLine *cfl) {
   int32 dim = 0;
   BaseFloat temperature = 1.0;
   bool apply_log = true;
@@ -10842,7 +10892,7 @@ void GumbelSoftmax::InitFromConfig(ConfigLine *cfl) {
   Init(dim, temperature, apply_log, temperature_decrease, temperature_decrease_proportion, temperature_decrease_minus);
 }
 
-std::string GumbelSoftmax::Info() const {
+std::string GumbelSoftmaxComponent::Info() const {
   std::ostringstream stream;
   stream << Type() << ", dim=" << dim_
          << ", temperature=" << temperature_
@@ -10853,7 +10903,7 @@ std::string GumbelSoftmax::Info() const {
   return stream.str();
 }
 
-void* GumbelSoftmax::Propagate(const ComponentPrecomputedIndexes *indexes,
+void* GumbelSoftmaxComponent::Propagate(const ComponentPrecomputedIndexes *indexes,
                                  const CuMatrixBase<BaseFloat> &in,
                                  CuMatrixBase<BaseFloat> *out) const {
   KALDI_ASSERT(out->NumRows() == in.NumRows() && out->NumCols() == in.NumCols()
@@ -10868,11 +10918,16 @@ void* GumbelSoftmax::Propagate(const ComponentPrecomputedIndexes *indexes,
   KALDI_ASSERT(temperature_ > 0.0);
   
   CuMatrix<BaseFloat> G(in.NumRows(), in.NumCols());
-  const_cast<CuRand<BaseFloat>&>(random_generator_).RandUniform(&G); // U ~ U(0,1)
-  G.ApplyLog();
-  G.Scale(-1.0);
-  G.ApplyLog();
-  G.Scale(-1.0); // G = -log(-log(U))
+  
+  if (!test_mode_) {
+      const_cast<CuRand<BaseFloat>&>(random_generator_).RandUniform(&G); // U ~ U(0,1)
+      G.ApplyLog();
+      G.Scale(-1.0);
+      G.ApplyLog();
+      G.Scale(-1.0); // G = -log(-log(U))
+  } else {
+      G.SetZero();
+  }
   
   CuMatrix<BaseFloat> alpha(in.NumRows(), in.NumCols());
   alpha.CopyFromMat(in);
@@ -10891,7 +10946,7 @@ void* GumbelSoftmax::Propagate(const ComponentPrecomputedIndexes *indexes,
 }
 
 
-void GumbelSoftmax::Backprop(const std::string &debug_info,
+void GumbelSoftmaxComponent::Backprop(const std::string &debug_info,
                                 const ComponentPrecomputedIndexes *indexes,
                                 const CuMatrixBase<BaseFloat> &in_value,
                                 const CuMatrixBase<BaseFloat> &out_value,
@@ -10921,10 +10976,10 @@ void GumbelSoftmax::Backprop(const std::string &debug_info,
 
 
 
-void GumbelSoftmax::Read(std::istream &is, bool binary) {
+void GumbelSoftmaxComponent::Read(std::istream &is, bool binary) {
   std::string token;
   ReadToken(is, binary, &token);
-  if (token == "<GumbelSoftmax>") {
+  if (token == "<GumbelSoftmaxComponent>") {
     ReadToken(is, binary, &token);
   }
   KALDI_ASSERT(token == "<Dim>");
@@ -10947,15 +11002,15 @@ void GumbelSoftmax::Read(std::istream &is, bool binary) {
   }
   if (token == "<TestMode>") {
     ReadBasicType(is, binary, &test_mode_);  // read test mode
-    ExpectToken(is, binary, "</GumbelSoftmax>");
+    ExpectToken(is, binary, "</GumbelSoftmaxComponent>");
   } else {
     test_mode_ = false;
-    KALDI_ASSERT(token == "</GumbelSoftmax>");
+    KALDI_ASSERT(token == "</GumbelSoftmaxComponent>");
   }
 }
 
-void GumbelSoftmax::Write(std::ostream &os, bool binary) const {
-  WriteToken(os, binary, "<GumbelSoftmax>");
+void GumbelSoftmaxComponent::Write(std::ostream &os, bool binary) const {
+  WriteToken(os, binary, "<GumbelSoftmaxComponent>");
   WriteToken(os, binary, "<Dim>");
   WriteBasicType(os, binary, dim_);
   WriteToken(os, binary, "<Temperature>");
@@ -10970,7 +11025,7 @@ void GumbelSoftmax::Write(std::ostream &os, bool binary) const {
   WriteBasicType(os, binary, apply_log_);
   WriteToken(os, binary, "<TestMode>");
   WriteBasicType(os, binary, test_mode_);
-  WriteToken(os, binary, "</GumbelSoftmax>");
+  WriteToken(os, binary, "</GumbelSoftmaxComponent>");
 }
 
 
@@ -12019,6 +12074,341 @@ void FramewiseLinearComponent::Write(std::ostream &os, bool binary) const {
   WriteToken(os, binary, "</FramewiseLinearComponent>");
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+
+void MeanAllMemoComponent::SetTestMode(bool test_mode) {
+  test_mode_ = test_mode;
+  
+//  count_.SetZero();
+//  stats_sum_.SetZero();
+//  stats_sumsq_.SetZero();
+}
+
+void MeanAllMemoComponent::Check() const {
+  KALDI_ASSERT(input_dim_ > 0 && output_dim_ > 0 && (input_dim_-1 == output_dim_ || 2*(input_dim_-1) == output_dim_ ) &&
+               epsilon_ > 0.0 && spk_num_ > 0);
+}
+
+MeanAllMemoComponent::MeanAllMemoComponent(const MeanAllMemoComponent &other):
+    input_dim_(other.input_dim_), output_dim_(other.output_dim_),
+    epsilon_(other.epsilon_), backprop_scale_(other.backprop_scale_), mem_decay_rate_(other.mem_decay_rate_),
+    test_mode_(other.test_mode_), count_(other.count_), output_std_(other.output_std_),
+    stats_sum_(other.stats_sum_), stats_sumsq_(other.stats_sumsq_), spk_num_(other.spk_num_) {
+  Check();
+}
+
+
+std::string MeanAllMemoComponent::Info() const {
+  std::ostringstream stream;
+  stream << Type() << ", input-dim=" << input_dim_ << ", output-dim=" << output_dim_
+         << ", epsilon=" << epsilon_ << ", backprop-scale=" << backprop_scale_ << ", mem-decay-rate=" << mem_decay_rate_
+         << ", output-std=" << (output_std_ ? "true" : "false") << ", spk-num=" << spk_num_
+         << ", test-mode=" << (test_mode_ ? "true" : "false")
+         << ", stats-sum with mean=" << stats_sum_.Sum()/(stats_sum_.NumRows()*stats_sum_.NumCols()) << ", size=" << stats_sum_.NumRows() << "," << stats_sum_.NumCols()
+         << ", stats-sumsq with mean=" << stats_sumsq_.Sum()/(stats_sumsq_.NumRows()*stats_sumsq_.NumCols()) << ", size=" << stats_sumsq_.NumRows() << "," << stats_sumsq_.NumCols()
+         << ", count with mean=" << count_.Sum()/(count_.Dim()) << ", dim=" << count_.Dim();
+  return stream.str();
+}
+
+void MeanAllMemoComponent::InitFromConfig(ConfigLine *cfl) {
+  input_dim_ = -1;
+  output_dim_ = -1;
+  spk_num_ = -1;
+  epsilon_ = 1.0e-03;
+  backprop_scale_ = 1.0;
+  mem_decay_rate_ = 1.0;
+  test_mode_ = false;
+  output_std_ = false;
+  bool ok = cfl->GetValue("input-dim", &input_dim_) && cfl->GetValue("output-dim", &output_dim_) && cfl->GetValue("spk-num", &spk_num_);
+  cfl->GetValue("epsilon", &epsilon_);
+  cfl->GetValue("backprop-scale", &backprop_scale_);
+  cfl->GetValue("mem-decay-rate", &mem_decay_rate_);
+  cfl->GetValue("test-mode", &test_mode_);
+  cfl->GetValue("output-std", &output_std_);
+  if (!ok || input_dim_ <= 0 || output_dim_ <= 0 || spk_num_ <= 0) {
+    KALDI_ERR << "MeanAllMemoComponent must have 'dim-in', 'dim-out', 'spk-num' specified, and > 0";
+  }
+  if (!((input_dim_-1 == output_dim_ || 2*(input_dim_-1) == output_dim_ ) && epsilon_ > 0.0))
+    KALDI_ERR << "Invalid configuration in MeanAllMemoComponent.";
+  if (cfl->HasUnusedValues())
+    KALDI_ERR << "Could not process these elements in initializer: "
+              << cfl->UnusedValues();
+  count_.Resize(spk_num_);
+  int32 dim = input_dim_-1;
+  stats_sum_.Resize(spk_num_, dim);
+  stats_sumsq_.Resize(spk_num_, dim);
+}
+
+void* MeanAllMemoComponent::Propagate(const ComponentPrecomputedIndexes *indexes,
+                                    const CuMatrixBase<BaseFloat> &in,
+                                    CuMatrixBase<BaseFloat> *out) const {
+  int32 dim = input_dim_-1;
+  int32 row_num = in.NumRows();
+
+  CuMatrix<BaseFloat> in_id(row_num,spk_num_);
+  CuMatrix<BaseFloat> in_id_tmp(in.ColRange(dim,1));
+  in_id_tmp.Add(0.5);
+  in_id.SelectOneFromIdRow(in_id_tmp);
+  
+  CuMatrix<BaseFloat> in_tmp(row_num,dim);
+  in_tmp.CopyFromMat(in.ColRange(0,dim));
+
+  CuVector<BaseFloat> count_current(spk_num_);
+  count_current.AddRowSumMat(1.0, in_id, 0.0);
+  
+  Memo *memo = new Memo;
+  
+  CuVector<BaseFloat> ids_current = count_current;
+  ids_current.ApplyCeiling(1.0); // x > 0 ? 1.0 : 0.0
+  CuVector<BaseFloat> count_memo = count_;
+  memo->count.Resize(spk_num_);
+  memo->count.CopyFromVec(count_);
+  count_memo.MulElements(ids_current); // only the current id count
+  memo->count.AddVec(-1.0, count_memo); // set current id count as zero
+    
+  count_memo.AddVec(1.0, count_current, mem_decay_rate_); // new count = old count * r + current count
+  memo->count.AddVec(1.0, count_memo); // reset the new count
+  memo->count.ApplyFloor(1e-20);
+
+  CuMatrix<BaseFloat> sum_memo = stats_sum_;
+  memo->stats_sum.Resize(spk_num_,dim);
+  memo->stats_sum.CopyFromMat(stats_sum_);
+  sum_memo.MulRowsVec(ids_current); // only the current id mem
+  memo->stats_sum.AddMat(-1.0, sum_memo); // set current id mem as zero
+    
+  sum_memo.AddMatMat(1.0, in_id, kTrans, in_tmp, kNoTrans, mem_decay_rate_); // new mem = old mem * r + current mem
+  memo->stats_sum.AddMat(1.0, sum_memo); // reset the new mem
+    
+  CuMatrix<BaseFloat> mean_memo = memo->stats_sum;
+  mean_memo.DivRowsVec(memo->count); // mean mem = sum mem / count
+  
+  (out->ColRange(0,dim)).AddMatMat(1.0, in_id, kNoTrans, mean_memo, kNoTrans, 0.0);
+  
+  memo->feat_mean.Resize(row_num,dim);
+  memo->feat_mean.CopyFromMat(out->ColRange(0,dim));
+  
+  if (output_std_) {
+      CuMatrix<BaseFloat> sumsq_memo = stats_sumsq_;
+      memo->stats_sumsq.Resize(spk_num_,dim);
+      memo->stats_sumsq.CopyFromMat(stats_sumsq_);
+      sumsq_memo.MulRowsVec(ids_current); // only the current id mem^2
+      memo->stats_sumsq.AddMat(-1.0, sumsq_memo); // set current id mem^2 as zero
+      
+      CuMatrix<BaseFloat> in_tmp2 = in_tmp;
+      in_tmp2.MulElements(in_tmp); // in_tmp.^2
+      sumsq_memo.AddMatMat(1.0, in_id, kTrans, in_tmp2, kNoTrans, mem_decay_rate_); // new mem^2 = old mem^2 * r + current mem^2
+      memo->stats_sumsq.AddMat(1.0, sumsq_memo); // reset the new mem^2
+      
+      CuMatrix<BaseFloat> std_memo = memo->stats_sumsq;
+      std_memo.DivRowsVec(memo->count); // E[mem^2] = sum mem^2 / count
+      CuMatrix<BaseFloat> mean_memo2 = mean_memo;
+      mean_memo2.MulElements(mean_memo); // mean_memo^2
+      std_memo.AddMat(-1.0, mean_memo2); // var mem = E[mem^2] - (mean mem)^2
+      std_memo.ApplyFloor(0.0);
+      std_memo.Add(epsilon_);
+      std_memo.ApplyPow(0.5); // std mean = (var men)^0.5
+      
+      (out->ColRange(dim,dim)).AddMatMat(1.0, in_id, kNoTrans, std_memo, kNoTrans, 0.0);
+      
+      memo->feat_std.Resize(row_num,dim);
+      memo->feat_std.CopyFromMat(out->ColRange(dim,dim));
+  }
+  
+  MeanAllMemoComponent *this_tmp = const_cast<MeanAllMemoComponent*>(this);
+  this_tmp->ComputeStats(memo);
+
+  return static_cast<void*>(memo);
+}
+
+void MeanAllMemoComponent::Backprop(
+    const std::string &debug_info,
+    const ComponentPrecomputedIndexes *indexes,
+    const CuMatrixBase<BaseFloat> &in_value,
+    const CuMatrixBase<BaseFloat> &out_value,
+    const CuMatrixBase<BaseFloat> &out_deriv,
+    void *memo_in,
+    Component *to_update,  // unused
+    CuMatrixBase<BaseFloat> *in_deriv) const {
+
+  Memo *memo = static_cast<Memo*>(memo_in);
+  
+  int32 dim = input_dim_-1;
+  int32 row_num = in_value.NumRows();
+  
+  (in_deriv->ColRange(0,dim)).CopyFromMat(out_deriv.ColRange(0,dim)); // deriv_1 = deriv_mean * 1/N
+  
+  if (output_std_) {
+    CuMatrix<BaseFloat> diff(row_num,dim);
+    diff.CopyFromMat(in_value.ColRange(0,dim)); // x_i
+    
+    diff.AddMat(-1.0, memo->feat_mean); // x_i - mean
+    memo->feat_std.Add(epsilon_);
+    memo->feat_std.ApplyPow(-1.0); // 1/std
+    diff.MulElements(memo->feat_std); // (x_i - mean) / std
+    diff.MulElements(out_deriv.ColRange(dim,dim)); // deriv_2 = (x_i - mean) / std * deriv_std * 1/N
+    
+    (in_deriv->ColRange(0,dim)).AddMat(1.0, diff); // in_deriv = deriv_1 + deriv_2
+  }
+  
+  if (backprop_scale_ != 1.0) {
+    in_deriv->Scale(backprop_scale_);
+  }
+}
+
+void MeanAllMemoComponent::ComputeStats(void *memo_in) {
+  Memo *memo = static_cast<Memo*>(memo_in);
+
+  count_.CopyFromVec(memo->count);
+  stats_sum_.CopyFromMat(memo->stats_sum);
+  
+  if (output_std_) {
+    stats_sumsq_.CopyFromMat(memo->stats_sumsq);
+  }
+}
+
+void MeanAllMemoComponent::Read(std::istream &is, bool binary) {
+  ExpectOneOrTwoTokens(is, binary, "<MeanAllMemoComponent>", "<InputDim>");
+  ReadBasicType(is, binary, &input_dim_);
+  ExpectToken(is, binary, "<OutputDim>");
+  ReadBasicType(is, binary, &output_dim_);
+  ExpectToken(is, binary, "<Epsilon>");
+  ReadBasicType(is, binary, &epsilon_);
+  ExpectToken(is, binary, "<BackpropScale>");
+  ReadBasicType(is, binary, &backprop_scale_);
+  ExpectToken(is, binary, "<MemDecayRate>");
+  ReadBasicType(is, binary, &mem_decay_rate_);
+  ExpectToken(is, binary, "<TestMode>");
+  ReadBasicType(is, binary, &test_mode_);
+  ExpectToken(is, binary, "<OutputStd>");
+  ReadBasicType(is, binary, &output_std_);
+  ExpectToken(is, binary, "<SpkNum>");
+  ReadBasicType(is, binary, &spk_num_);
+  ExpectToken(is, binary, "<Count>");
+  count_.Read(is, binary);
+  ExpectToken(is, binary, "<StatsSum>");
+  stats_sum_.Read(is, binary);
+  ExpectToken(is, binary, "<StatsSumsq>");
+  stats_sumsq_.Read(is, binary);
+  ExpectToken(is, binary, "</MeanAllMemoComponent>");
+  Check();
+}
+
+void MeanAllMemoComponent::Write(std::ostream &os, bool binary) const {
+  Check();
+  WriteToken(os, binary, "<MeanAllMemoComponent>");
+  WriteToken(os, binary, "<InputDim>");
+  WriteBasicType(os, binary, input_dim_);
+  WriteToken(os, binary, "<OutputDim>");
+  WriteBasicType(os, binary, output_dim_);
+  WriteToken(os, binary, "<Epsilon>");
+  WriteBasicType(os, binary, epsilon_);
+  WriteToken(os, binary, "<BackpropScale>");
+  WriteBasicType(os, binary, backprop_scale_);
+  WriteToken(os, binary, "<MemDecayRate>");
+  WriteBasicType(os, binary, mem_decay_rate_);
+  WriteToken(os, binary, "<TestMode>");
+  WriteBasicType(os, binary, test_mode_);
+  WriteToken(os, binary, "<OutputStd>");
+  WriteBasicType(os, binary, output_std_);
+  WriteToken(os, binary, "<SpkNum>");
+  WriteBasicType(os, binary, spk_num_);
+  WriteToken(os, binary, "<Count>");
+  count_.Write(os, binary);
+  WriteToken(os, binary, "<StatsSum>");
+  stats_sum_.Write(os, binary);
+  WriteToken(os, binary, "<StatsSumsq>");
+  stats_sumsq_.Write(os, binary);
+  WriteToken(os, binary, "</MeanAllMemoComponent>");
+}
+
+void MeanAllMemoComponent::Scale(BaseFloat scale) {
+  if (scale == 0) {
+    count_.SetZero();
+    stats_sum_.SetZero();
+    stats_sumsq_.SetZero();
+  } else {
+    count_.Scale(scale);
+    stats_sum_.Scale(scale);
+    stats_sumsq_.Scale(scale);
+  }
+}
+
+
+void MeanAllMemoComponent::Add(BaseFloat alpha, const Component &other_in) {
+  const MeanAllMemoComponent *other =
+      dynamic_cast<const MeanAllMemoComponent*>(&other_in);
+  count_.AddVec(alpha, other->count_);
+  stats_sum_.AddMat(alpha, other->stats_sum_);
+  stats_sumsq_.AddMat(alpha, other->stats_sumsq_);
+}
+
+
+//////////
+
+void Id2OnehotComponent::Init(int32 dim, int32 input_dim) {
+  dim_ = dim;
+  input_dim_ = input_dim;
+}
+
+void* Id2OnehotComponent::Propagate(const ComponentPrecomputedIndexes *indexes,
+                              const CuMatrixBase<BaseFloat> &in,
+                              CuMatrixBase<BaseFloat> *out) const {
+  
+  CuMatrix<BaseFloat> in_id(in);
+  in_id.Add(0.5);
+  out->SelectOneFromIdRow(in_id);
+  
+  return NULL;
+}
+
+void Id2OnehotComponent::Backprop(const std::string &debug_info,
+                             const ComponentPrecomputedIndexes *indexes,
+                             const CuMatrixBase<BaseFloat> &,
+                             const CuMatrixBase<BaseFloat> &,
+                             const CuMatrixBase<BaseFloat> &out_deriv,
+                             void *memo,
+                             Component *to_update, // may be NULL; may be identical
+                             // to "this" or different.
+                             CuMatrixBase<BaseFloat> *in_deriv) const {
+  if (in_deriv != NULL) {
+	in_deriv->SetZero();
+  }
+}
+
+void Id2OnehotComponent::InitFromConfig(ConfigLine *cfl) {
+  if (!cfl->GetValue("output-dim", &dim_) || !cfl->GetValue("input-dim", &input_dim_) || dim_ <= 0) {
+    KALDI_ERR << "Invalid values dim=" << dim_ << " input-dim=" << input_dim_;
+  }
+  if (input_dim_ != 1)
+    KALDI_ERR << "input-dim must be 1.";
+  if (cfl->HasUnusedValues())
+    KALDI_ERR << "Could not process these elements in initializer: "
+              << cfl->UnusedValues();
+}
+
+std::string Id2OnehotComponent::Info() const {
+  std::ostringstream stream;
+  stream << Type() << ", dim=" << dim_;
+  return stream.str();
+}
+
+void Id2OnehotComponent::Write(std::ostream &os, bool binary) const {
+  WriteToken(os, binary, "<Id2OnehotComponent>");
+  WriteToken(os, binary, "<InputDim>");
+  WriteBasicType(os, binary, input_dim_);
+  WriteToken(os, binary, "<OutputDim>");
+  WriteBasicType(os, binary, dim_);
+  WriteToken(os, binary, "</Id2OnehotComponent>");
+}
+
+void Id2OnehotComponent::Read(std::istream &is, bool binary) {
+  ExpectOneOrTwoTokens(is, binary, "<Id2OnehotComponent>", "<InputDim>");
+  ReadBasicType(is, binary, &input_dim_);
+  ExpectToken(is, binary, "<OutputDim>");
+  ReadBasicType(is, binary, &dim_);
+  ExpectToken(is, binary, "</Id2OnehotComponent>");
+}
 
 
 

@@ -18,6 +18,8 @@ seq_len=100
 dropout=0.1
 tied=true
 
+data_dir=data/pytorchnn_back
+
 . ./cmd.sh
 . ./path.sh
 . ./utils/parse_options.sh
@@ -28,8 +30,6 @@ set -e
 if [ -z $nn_model ]; then
   nn_model=$pytorch_path/model.pt
 fi
-
-data_dir=data/pytorchnn_back
 
 # Check if PyTorch is installed to use with python
 if python3 steps/pytorchnn/check_py.py 2>/dev/null; then

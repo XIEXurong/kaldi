@@ -157,7 +157,7 @@ echo "$0: Will train for $num_epochs epochs = $num_iters iterations"
 if $use_gpu; then
   parallel_suffix=""
   train_queue_opt="--gpu 1"
-  parallel_train_opts=
+  parallel_train_opts="--use-gpu=wait"
   if ! cuda-compiled; then
     echo "$0: WARNING: you are running with one thread but you have not compiled"
     echo "   for CUDA.  You may be running a setup optimized for GPUs.  If you have"

@@ -286,6 +286,7 @@ def perturb_utterances(utterances, allowed_durations, args):
             ## Add two versions for the second allowed_duration
             ## one version is by using speed modification using sox
             ## the other is by extending by silence
+            prename=''
             if args.speed_perturb:
                 u2 = copy.deepcopy(u)
                 u2.id = 'pv2-' + u.id
@@ -293,13 +294,14 @@ def perturb_utterances(utterances, allowed_durations, args):
                 u2.wavefile = '{} sox -t wav - -t wav - speed {} | '.format(u.wavefile, speed)
                 u2.dur = allowed_dur2
                 perturbed_utterances.append(u2)
+                prename='pv3-'
 
             delta = allowed_dur2 - u.dur
             if delta <= 1e-4:
                 continue
             u3 = copy.deepcopy(u)
-            u3.id = 'pv3-' + u.id
-            u3.speaker = 'pv3-' + u.speaker
+            u3.id = prename + u.id
+            u3.speaker = prename + u.speaker
             u3.wavefile = '{} extend-wav-with-silence --extra-silence-length={} - - | '.format(u.wavefile, delta)
             u3.dur = allowed_dur2
             perturbed_utterances.append(u3)

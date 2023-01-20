@@ -678,6 +678,7 @@ void BatchNormComponent::ZeroStats() {
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
 
 // Modified version for adaptation!!!
 void BatchNormTestComponent::ComputeDerived() {

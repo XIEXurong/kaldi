@@ -18,6 +18,11 @@ num_chunk=64
 param_init=0.0
 act="Sig" # Sig, Idnt, Exp
 tag= # any other marks
+adapt_lr_factor=1.0
+baseline_lr_factor=1.0
+fix_baseline=false
+baseline_iter=0
+constrain=false
 
 decode_iter=
 decode_nj=50
@@ -33,6 +38,11 @@ layer_dim="2560 1536 1536 1536 1536 1536 1536" # should be corresponding to the 
 input_config="component-node name=idct component=idct input=feature1" # cnn-tdnn, for tdnn, it can be "component-node name=lda component=lda input=Append(Offset(feature1, -1), feature1, Offset(feature1, 1), ReplaceIndex(ivector, t, 0))"
 input_dim=41
 common_egs_dir=
+adapt_base=adaptation/LHUC
+
+gpu_memory_required=7000
+gpu_exclusive=true
+cuda_id="0,1,2,3,4,5,6,7,8"
 
 # End configuration section.
 echo "$0 $@"  # Print the command line for logging
@@ -40,6 +50,8 @@ echo "$0 $@"  # Print the command line for logging
 . ./cmd.sh
 . ./path.sh
 . ./utils/parse_options.sh
+
+export CUDA_VISIBLE_DEVICES=$cuda_id
 
 adapted_layer_array=($adapted_layer)
 layer_dim_array=($layer_dim)
@@ -50,19 +62,18 @@ layer_num1=`echo ${#layer_dim_array[*]}`
 
 adapt_set=$1 # train_nodup_sp_hires_spk
 label_lat_dir=$2 # exp/tri4_lats_nodup_sp
-treedir=$4 # exp/chain/tri5_7d_tree_sp
+treedir=$3 # exp/chain/tri5_7d_tree_sp
 decode_set=$4 # eval2000_hires_spk
 
-version=_LHUC_SAT${tag}_adaptlayer${layer_num}_act${act}_batch${num_chunk}_epoch${epoch_num}_lr1${lr1}_lr2${lr2}
+version=_LHUC_SAT${tag}_adaptlayer${layer_num}_act${act}
 
 dirbase=exp/chain/${baseline}
-dir=exp/chain/adaptation/LHUC/${baseline}${version}
+dir=exp/chain/$adapt_base/${baseline}${version}
 
 if [ $stage -le 0 ]; then
 
 mkdir -p $dir
 cp -r $dirbase/{configs,phones.txt,phone_lm.fst,tree,den.fst,normalization.fst,0.trans_mdl} $dir/
-cp -r $dirbase/{final.mdl,tree,phones.txt} $label_lat_dir/
 
 spk_num=`cat data/${adapt_set}/num_spk`
 input_dim_nospk=$(awk "BEGIN{print($input_dim-1)}")
@@ -76,7 +87,7 @@ cat <<EOF > $dir/configs/change.config
 	${input_config}
 
 	# speaker id
-	dim-range-node name=feature2 input-node=input dim=1 dim-offset=40
+	dim-range-node name=feature2 input-node=input dim=1 dim-offset=$input_dim_nospk
 EOF
 
 layer_num_minus1=$(awk "BEGIN{print($layer_num-1)}")
@@ -99,7 +110,7 @@ dim_tmp=`echo ${layer_dim_array[i]}`
 dim_tmp_x2=$(awk "BEGIN{print(2*$dim_tmp)}")
 
 cat <<EOF >> $dir/configs/change.config	
-	component name=LHUC.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_init param-stddev=0 use-natural-gradient=true
+	component name=LHUC.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_init param-stddev=0 use-natural-gradient=true learning-rate-factor=${adapt_lr_factor}
 	component-node name=LHUC.linear.$layer component=LHUC.linear.$layer input=feature2
 	component name=LHUC.act.$layer $act_component dim=$dim_tmp
 	component-node name=LHUC.act.$layer component=LHUC.act.$layer input=LHUC.linear.$layer
@@ -111,27 +122,42 @@ EOF
 
 done
 
-nnet3-copy --nnet-config=$dir/configs/change.config $dirbase/0.raw $dir/0.raw
-
+if [[ "$fix_baseline" == "true" ]]; then
+    nnet3-copy --binary=false --edits="set-learning-rate-factor learning-rate-factor=$baseline_lr_factor" $dirbase/$baseline_iter.mdl - | \
+     sed "s/<TestMode> F/<TestMode> T/g" | sed "s/BatchNormComponent/BatchNormTestComponent/g" | sed "s/<OrthonormalConstraint> [^ ]* /<OrthonormalConstraint> 0/g" | \
+     nnet3-copy --nnet-config=$dir/configs/change.config - $dir/0.raw
+else
+    nnet3-copy --binary=false --edits="set-learning-rate-factor learning-rate-factor=$baseline_lr_factor" $dirbase/$baseline_iter.mdl - | \
+     nnet3-copy --nnet-config=$dir/configs/change.config - $dir/0.raw
+fi
 nnet3-info $dir/0.raw > $dir/0.raw.info
 
 fi
 
 if [ $stage -le 1 ]; then
-  steps/nnet3/chain/train.py --stage $train_stage \
-    --cmd "$train_cmd" \
-	--feat.online-ivector-dir $adapt_ivector_dir \
+  
+  use_gpu=""
+  train_par="_par"
+  if $gpu_exclusive; then
+    train_par=""
+    gpu_memory_required=
+    use_gpu="wait"
+  fi
+  
+  steps/nnet3/chain/train${train_par}.py --stage $train_stage \
+    --cmd "$train_cmd" ${gpu_memory_required:+ --free-memory-required $gpu_memory_required} ${use_gpu:+ --use-gpu "$use_gpu"} \
+	${adapt_ivector_dir:+ --feat.online-ivector-dir $adapt_ivector_dir} \
     --feat.cmvn-opts "--norm-means=false --norm-vars=false" \
     --chain.xent-regularize $xent_regularize \
     --chain.leaky-hmm-coefficient 0.1 \
     --chain.l2-regularize 0.0 \
     --chain.apply-deriv-weights false \
     --chain.lm-opts="--num-extra-lm-states=2000" \
-	--trainer.dropout-schedule $dropout_schedule \
+	${dropout_schedule:+ --trainer.dropout-schedule $dropout_schedule} \
     --trainer.add-option="--optimization.memory-compression-level=2" \
     --egs.dir "$common_egs_dir" \
     --egs.stage $get_egs_stage \
-    --egs.opts "--frames-overlap-per-eg 0 --constrained false" \
+    --egs.opts "--frames-overlap-per-eg 0 --constrained $constrain" \
     --egs.chunk-width $frames_per_eg \
     --trainer.num-chunk-per-minibatch ${num_chunk} \
     --trainer.frames-per-iter 1500000 \
@@ -152,6 +178,7 @@ if [ $stage -le 1 ]; then
   mv $dir/final.mdl $dir/final_ori.mdl
 for i in `seq 0 $layer_num_minus1`; do
 layer=`echo ${adapted_layer_array[i]}`
+dim_tmp=`echo ${layer_dim_array[i]}`
 cat <<EOF >> $dir/configs/change_final.config
 	component name=LHUC.linear.$layer type=LinearSelectColComponent input-dim=1 output-dim=$dim_tmp col-num=$spk_num l2-regularize=0.00 param-mean=$param_init param-stddev=0 use-natural-gradient=false
 EOF
@@ -180,7 +207,7 @@ if [ $stage -le 3 ]; then
   (
   steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
 	  --nj $decode_nj --cmd "$decode_cmd" $iter_opts \
-	  --online-ivector-dir $test_ivector_dir \
+	  ${test_ivector_dir:+ --online-ivector-dir $test_ivector_dir} \
 	  $graph_dir data/${decode_set} \
 	  $dir/decode_${decode_set}${decode_iter:+_$decode_iter}_sw1_tg || exit 1;
 	  

@@ -9,6 +9,7 @@ decode_dir_suffix_forward=pytorch_transformer
 decode_dir_suffix_backward=pytorch_transformer_back
 pytorch_path=exp/pytorchnn_lm/pytorch_transformer_back
 nn_model=
+decode_dir=
 
 model_type=Transformer # LSTM, GRU or Transformer
 embedding_dim=512 # 650 for LSTM (for reproducing perplexities and WERs above)
@@ -22,13 +23,27 @@ beam=5
 beam_forward=
 epsilon=0.5
 
+seq_len=100
+reset_history=true
+
+cross_utt=false
+
 data=data
 LM_path=data/lang_
 
 use_nbest=false
 scoring_opts=
 other_opt=
+other_opt1=
 tied=true
+
+gpu_nj=
+
+cuda_id="0,1,2,3,4,5,6,7,8"
+
+use_gpu=false
+
+data_dir=data/pytorchnn_back
 
 . ./cmd.sh
 . ./path.sh
@@ -41,9 +56,10 @@ if [ -z $nn_model ]; then
   nn_model=$pytorch_path/model.pt
 fi
 
-data_dir=data/pytorchnn_back
 test_data=$1
 ac_model_dir=$2
+
+decode_dir_ori=$decode_dir
 
 beam_forward1=${beam_forward:+${beam_forward}-}
 if [ -z $beam_forward ]; then
@@ -63,12 +79,22 @@ else
   exit 1
 fi
 
+GPU=""
+DEV="_cpu"
+if [ "$use_gpu" == "true" ]; then GPU="_gpu"; DEV="_gpu"; fi
+
+cross_utt_opt=""
+CROSSUTT=""
+if [ "$cross_utt" == "true" ]; then CROSSUTT="_crossutt"; cross_utt_opt="--seq_len $seq_len --reset_history $reset_history"; fi
+
 if $use_nbest; then
   echo "$0: Perform N-best rescoring on $ac_model_dir with a $model_type LM."
   for decode_set in $test_data; do
-      decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
-      steps/pytorchnn/lmrescore_nbest_pytorchnn_back_mod.sh ${scoring_opts:+ --scoring-opts "$scoring_opts"} $other_opt \
-        --cmd "$cmd --mem 4G" \
+      if [ -z $decode_dir_ori ]; then
+        decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+      fi
+      steps/pytorchnn/lmrescore_nbest_pytorchnn_back_mod${CROSSUTT}${GPU}.sh ${scoring_opts:+ --scoring-opts "$scoring_opts"} $other_opt $other_opt1 \
+        --cmd "$cmd --mem 4G" ${gpu_nj:+ --gpu_nj "$gpu_nj"} \
         --N $nbest_num \
         --model-type $model_type \
         --embedding_dim $embedding_dim \
@@ -76,7 +102,7 @@ if $use_nbest; then
         --nlayers $nlayers \
         --nhead $nhead \
         --weight $weight \
-        --tied $tied \
+        --tied $tied $cross_utt_opt \
         ${LM_path}$LM $nn_model $data_dir/words.txt \
         $data/${decode_set} ${decode_dir}_${decode_dir_suffix_forward}_${nbest_num}best_${weight} \
         ${decode_dir}_${decode_dir_suffix_backward}_${nbest_num}best_${weight}
@@ -92,7 +118,9 @@ fi
 if ! $use_nbest; then
   echo "$0: Perform lattice rescoring on $ac_model_dir with a $model_type LM."
   for decode_set in $test_data; do
-      decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+      if [ -z $decode_dir_ori ]; then
+        decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+      fi
       steps/pytorchnn/lmrescore_lattice_pytorchnn_back_mod.sh ${scoring_opts:+ --scoring-opts "$scoring_opts"} $other_opt \
         --cmd "$cmd --mem 4G" \
         --model-type $model_type \

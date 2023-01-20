@@ -23,6 +23,7 @@ srun= # _mod_srun
 tag=
 scoring_opts=
 other_opt=
+decode_dir=
 
 . ./cmd.sh
 . ./utils/parse_options.sh
@@ -30,6 +31,7 @@ other_opt=
 test_data=$1 # eval2000_fbk
 ac_model_dir=$2 # exp/chain/tdnn_fbk_iv_7q
 
+decode_dir_ori=$decode_dir
 
 if ! $use_nbest; then
 
@@ -49,7 +51,9 @@ if ! $use_nbest; then
   
   if $forward_rescore; then
       for decode_set in $test_data; do
-        decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        if [ -z $decode_dir_ori ]; then
+            decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        fi
 
         # Lattice rescoring
         rnnlm/lmrescore${pruned}$srun.sh ${scoring_opts:+ --scoring-opts "$scoring_opts"} $other_opt \
@@ -69,7 +73,9 @@ if ! $use_nbest; then
 
   if $backward_rescore; then
       for decode_set in $test_data; do
-        decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        if [ -z $decode_dir_ori ]; then
+            decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        fi
         if [ ! -d ${decode_dir}_${decode_dir_suffix_forward}_${weight}${ori}${tag} ]; then
           echo "$0: Must run the forward recipe first at local/rnnlm/run_tdnn_lstm.sh"
           exit 1
@@ -95,7 +101,9 @@ else
   
   if $forward_rescore; then
       for decode_set in $test_data; do
-        decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        if [ -z $decode_dir_ori ]; then
+            decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        fi
 
         # Nbest rescoring
         rnnlm/lmrescore_nbest$srun.sh ${scoring_opts:+ --scoring-opts "$scoring_opts"} $other_opt \
@@ -115,7 +123,9 @@ else
   
   if $backward_rescore; then
       for decode_set in $test_data; do
-        decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        if [ -z $decode_dir_ori ]; then
+            decode_dir=${ac_model_dir}/decode_${decode_set}_${LM}
+        fi
         if [ ! -d ${decode_dir}_${decode_dir_suffix_forward}_${nbest_num}best_${nbest_weight}${tag} ]; then
           echo "$0: Must run the forward recipe first at local/rnnlm/run_tdnn_lstm.sh"
           exit 1

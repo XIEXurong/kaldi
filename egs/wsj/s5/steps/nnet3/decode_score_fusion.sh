@@ -74,7 +74,7 @@ write_compact=true   # If set to false, then writes the lattice in non-compact f
 . parse_options.sh || exit 1;
 
 
-if [ $# -lt 5 ]; then
+if [ $# -lt 4 ]; then
   echo "Usage: $0 [options] <data-dir> <graph-dir> <nnet3-dir> <nnet3-dir2> [<nnet3-dir3> ... ] <output-dir>"
   echo "e.g.:   steps/nnet3/decode_score_fusion.sh --nj 8 \\"
   echo "    --online-ivector-dir exp/nnet3/ivectors_test \\"

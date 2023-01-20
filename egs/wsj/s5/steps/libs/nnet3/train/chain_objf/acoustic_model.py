@@ -17,6 +17,7 @@ import sys
 
 import libs.common as common_lib
 import libs.nnet3.train.common as common_train_lib
+import time
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -230,6 +231,7 @@ def train_new_models(dir, iter, srand, num_jobs,
             require_zero_status=True)
 
         threads.append(thread)
+        time.sleep(0)
 
     for thread in threads:
         thread.join()

@@ -140,7 +140,7 @@ if [ $stage -le 7 ]; then
     paste $adir.$n/lmwt.nolm $adir.$n/lmwt.lmonly $adir.$n/lmwt.nn.sum_bi | awk -v nnweight=$weight \
       '{ key=$1; graphscore=$2; lmscore=$4; nnscore=$6;
      score = graphscore+(nnweight*nnscore)+((1-nnweight)*lmscore);
-     print $1,score; } ' > $adir.$n/lmwt.interp.$nnweight || exit 1;
+     print $1,score; } ' > $adir.$n/lmwt.interp || exit 1;
   done
 fi
 
@@ -148,7 +148,7 @@ if [ $stage -le 8 ]; then
   echo "$0: reconstructing archives back into lattices."
   $cmd JOB=1:$nj $dir/log/reconstruct_lattice.JOB.log \
     linear-to-nbest "ark:$adir.JOB/ali" "ark:$adir.JOB/words" \
-    "ark:$adir.JOB/lmwt.interp.$nnweight" "ark:$adir.JOB/acwt" ark:- \| \
+    "ark:$adir.JOB/lmwt.interp" "ark:$adir.JOB/acwt" ark:- \| \
     nbest-to-lattice ark:- "ark:|gzip -c >$dir/lat.JOB.gz" || exit 1;
 fi
 

@@ -21,7 +21,7 @@ def generate_chain_egs_adapt(dir, data, lat_dir, egs_dir,
                        frame_subsampling_factor=3,
                        alignment_subsampling_factor=3,
                        online_ivector_dir=None,
-                       frames_per_iter=20000, frames_per_eg_str="20", srand=0,
+                       frames_per_iter=20000, frames_per_eg_str="20", srand=0, deriv_weights_scp=None,
                        egs_opts=None, cmvn_opts=None):
     """Wrapper for steps/nnet3/chain/get_egs.sh
 
@@ -45,6 +45,7 @@ def generate_chain_egs_adapt(dir, data, lat_dir, egs_dir,
                 --frames-per-iter {frames_per_iter} \
                 --frames-per-eg {frames_per_eg_str} \
                 --srand {srand} \
+                --deriv-weights-scp "{deriv_weights_scp}" \
                 {data} {dir} {lat_dir} {egs_dir}""".format(
                     command=run_opts.egs_command,
                     cmvn_opts=cmvn_opts if cmvn_opts is not None else '',
@@ -65,6 +66,9 @@ def generate_chain_egs_adapt(dir, data, lat_dir, egs_dir,
                     alignment_subsampling_factor=alignment_subsampling_factor,
                     stage=stage, frames_per_iter=frames_per_iter,
                     frames_per_eg_str=frames_per_eg_str, srand=srand,
+                    deriv_weights_scp=(deriv_weights_scp
+                                       if deriv_weights_scp is not None
+                                       else ''),
                     data=data, lat_dir=lat_dir, dir=dir, egs_dir=egs_dir,
                     egs_opts=egs_opts if egs_opts is not None else ''))
 

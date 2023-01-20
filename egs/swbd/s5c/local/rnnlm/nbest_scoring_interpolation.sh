@@ -6,6 +6,7 @@ cmd=run.pl
 skip_scoring=false
 nnlm_score_file_name=lmwt.rnn
 scoring_opt=
+graph_scale=1
 
 [ -f ./path.sh ] && . ./path.sh
 . utils/parse_options.sh
@@ -63,9 +64,9 @@ if [ $stage -le 2 ]; then
     for n in `seq $nj`; do
         mkdir -p $adir.$n/temp
         lmweight=${lm_scale_array[0]}
-        paste $adir.$n/lmwt.nolm $adir.$n/lmwt.lmonly | awk -v lmweight=$lmweight \
+        paste $adir.$n/lmwt.nolm $adir.$n/lmwt.lmonly | awk -v lmweight=$lmweight -v gweight=$graph_scale \
           '{ key=$1; graphscore=$2; lmscore=$4;
-         score = graphscore+(lmweight*lmscore);
+         score = (gweight*graphscore)+(lmweight*lmscore);
          print $1,score; } ' > $adir.$n/temp/lmwt.base0 || exit 1;
         for i in `seq 0 $LM_index_max`; do
             j=$(awk "BEGIN{print($i+1)}")

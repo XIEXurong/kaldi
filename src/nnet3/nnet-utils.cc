@@ -1426,8 +1426,8 @@ void ReadEditConfig(std::istream &edit_config_is, Nnet *nnet) {
       for (int32 c = 0; c < nnet->NumComponents(); c++) {
         if (NameMatchesPattern(nnet->GetComponentName(c).c_str(),
                                name_pattern.c_str())) {
-          GumbelSoftmax *gumbel_softmax_component =
-             dynamic_cast<GumbelSoftmax*>(nnet->GetComponent(c));
+          GumbelSoftmaxComponent *gumbel_softmax_component =
+             dynamic_cast<GumbelSoftmaxComponent*>(nnet->GetComponent(c));
           if (gumbel_softmax_component != NULL) {
             gumbel_softmax_component->SetTemperature(temperature);
             num_temperature_set++;

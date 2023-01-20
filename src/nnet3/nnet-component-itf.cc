@@ -193,7 +193,7 @@ Component* Component::NewComponentOfType(const std::string &component_type) {
     ans = new NormalRandComponent();
   } else if (component_type == "NormalRandFComponent") { ///////////////////
     ans = new NormalRandFComponent();
-  } else if (component_type == "DropoutMaskSimpleComponent") { ///////////////////
+  } else if (component_type == "DropoutMaskSimpleComponent") { /////////////////// incomplete
     ans = new DropoutMaskSimpleComponent();
   } else if (component_type == "RandSelectNComponent") { ///////////////////
     ans = new RandSelectNComponent();
@@ -259,8 +259,8 @@ Component* Component::NewComponentOfType(const std::string &component_type) {
     ans = new BLHUCGMMComponent();
   } else if (component_type == "KLAdaptComponent") { ///////////////////
     ans = new KLAdaptComponent();
-  } else if (component_type == "GumbelSoftmax") { ///////////////////
-    ans = new GumbelSoftmax();
+  } else if (component_type == "GumbelSoftmaxComponent") { ///////////////////
+    ans = new GumbelSoftmaxComponent();
   } else if (component_type == "SoftmaxKLPriorComponent") { ///////////////////
     ans = new SoftmaxKLPriorComponent();
   } else if (component_type == "PriorSelectKLGaussianComponent") { ///////////////////
@@ -271,6 +271,10 @@ Component* Component::NewComponentOfType(const std::string &component_type) {
     ans = new SpecMaskOnlineComponent();
   } else if (component_type == "FramewiseLinearComponent") { ///////////////////
     ans = new FramewiseLinearComponent();
+  } else if (component_type == "MeanAllMemoComponent") { ///////////////////
+    ans = new MeanAllMemoComponent();
+  } else if (component_type == "Id2OnehotComponent") { ///////////////////
+    ans = new Id2OnehotComponent();
   }
   if (ans != NULL) {
     KALDI_ASSERT(component_type == ans->Type());

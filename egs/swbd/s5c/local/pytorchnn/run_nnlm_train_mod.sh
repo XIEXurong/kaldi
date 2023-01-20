@@ -18,18 +18,24 @@ seq_len=100
 dropout=0.1
 tied=true
 
+data_dir=data/pytorchnn
+
+limit_num_gpus_cmd="utils/parallel/limit_num_gpus.sh"
+
+cuda_id="0,1,2,3,4,5,6,7,8"
+
 . ./cmd.sh
 . ./path.sh
 . ./utils/parse_options.sh
 [ -z "$cmd" ] && cmd=$decode_cmd
+
+export CUDA_VISIBLE_DEVICES=$cuda_id
 
 set -e
 
 if [ -z $nn_model ]; then
   nn_model=$pytorch_path/model.pt
 fi
-
-data_dir=data/pytorchnn
 
 # Check if PyTorch is installed to use with python
 if python3 steps/pytorchnn/check_py.py 2>/dev/null; then
@@ -56,7 +62,7 @@ fi
 if [ $stage -le 1 ]; then
   # Train a PyTorch neural network language model.
   echo "Start neural network language model training."
-  $cuda_cmd $pytorch_path/log/train.log utils/parallel/limit_num_gpus.sh \
+  $cuda_cmd $pytorch_path/log/train.log $limit_num_gpus_cmd \
     python3 steps/pytorchnn/train.py --data $data_dir \
             --model $model_type \
             --emsize $embedding_dim \

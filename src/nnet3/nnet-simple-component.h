@@ -2455,11 +2455,14 @@ class DimRangeComponent: public Component {
 class MinValueComponent: public Component {
  public:
   explicit MinValueComponent(const MinValueComponent &other):
-      dim_(other.dim_), scale_(other.scale_) { }
+      dim_(other.dim_), scale_(other.scale_), report_step_(other.report_step_), count_(other.count_), sum_(other.sum_), test_mode_(other.test_mode_) { }
   MinValueComponent() { }
+  
+  void SetTestMode(bool test_mode) { test_mode_ = test_mode; }
+  
   virtual std::string Type() const { return "MinValueComponent"; }
   virtual int32 Properties() const {
-    return kSimpleComponent|kPropagateInPlace;
+    return kSimpleComponent|kPropagateInPlace|kUsesMemo|kStoresStats;
   }
   virtual int32 InputDim() const { return dim_; }
   virtual int32 OutputDim() const { return dim_; }
@@ -2469,6 +2472,14 @@ class MinValueComponent: public Component {
   virtual void Write(std::ostream &os, bool binary) const;
   virtual std::string Info() const;
   virtual Component* Copy() const { return new MinValueComponent(*this); }
+  
+  virtual void StoreStats(const CuMatrixBase<BaseFloat> &in_value,
+                          const CuMatrixBase<BaseFloat> &out_value,
+                          void *memo);
+  virtual void ZeroStats();
+  
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+  
   virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
                           const CuMatrixBase<BaseFloat> &in,
                           CuMatrixBase<BaseFloat> *out) const;
@@ -2483,6 +2494,17 @@ class MinValueComponent: public Component {
  private:
   int32 dim_;
   BaseFloat scale_;
+  int32 report_step_;
+  
+  struct Memo {
+	int32 count;
+    double sum;
+  };
+  
+  int32 count_;
+  double sum_;
+  
+  bool test_mode_;
 
   MinValueComponent &operator = (const MinValueComponent &other); // Disallow.
 };
@@ -3796,26 +3818,26 @@ class KLAdaptComponent: public Component {
 
 /////////////////////////////
 
-class GumbelSoftmax : public RandomComponent {
+class GumbelSoftmaxComponent : public RandomComponent {
  public:
   void Init(int32 dim, BaseFloat temperature = 1.0,
             bool apply_log = true, int32 temperature_decrease=0, BaseFloat temperature_decrease_proportion = 1.0, BaseFloat temperature_decrease_minus = 0.0);
 
-  GumbelSoftmax(int32 dim, BaseFloat temperature = 1.0,
+  GumbelSoftmaxComponent(int32 dim, BaseFloat temperature = 1.0,
                    bool apply_log = true, int32 temperature_decrease=0, BaseFloat temperature_decrease_proportion = 1.0, BaseFloat temperature_decrease_minus = 0.0) {
     Init(dim, temperature, apply_log);
   }
 
-  GumbelSoftmax(): dim_(0), temperature_(1.0),
+  GumbelSoftmaxComponent(): dim_(0), temperature_(1.0),
                       apply_log_(true), temperature_decrease_(0), temperature_decrease_proportion_(1.0), temperature_decrease_minus_(0.0) { }
 
-  GumbelSoftmax(const GumbelSoftmax &other);
+  GumbelSoftmaxComponent(const GumbelSoftmaxComponent &other);
 
   virtual int32 Properties() const {
     return kSimpleComponent|kBackpropNeedsInput|
         kBackpropNeedsOutput|kRandomComponent;
   }
-  virtual std::string Type() const { return "GumbelSoftmax"; }
+  virtual std::string Type() const { return "GumbelSoftmaxComponent"; }
 
   virtual void InitFromConfig(ConfigLine *cfl);
 
@@ -4130,6 +4152,146 @@ class FramewiseLinearComponent: public Component {
   int32 input_dim_; // input = [ feat(T*N) param(T*(N*M)) ]
   int32 output_dim_; // output(T*M)
   int32 feat_dim_; // feat(N)
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+class MeanAllMemoComponent: public Component {
+ public:
+
+  MeanAllMemoComponent() { }
+
+  // call this with 'true' to set 'test mode' where the batch normalization is
+  // done with stored stats.  There won't normally be any need to specially
+  // accumulate these stats; they are stored as a matter of course on each
+  // iteration of training, as for NonlinearComponents, and we'll use the stats
+  // from the most recent [script-level] iteration.
+  // (Note: it will refuse to actually set test-mode to true if there
+  // are no stats stored.)
+  void SetTestMode(bool test_mode);
+
+  // constructor using another component
+  MeanAllMemoComponent(const MeanAllMemoComponent &other);
+
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return output_dim_; }
+
+  virtual std::string Info() const;
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual std::string Type() const { return "MeanAllMemoComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kBackpropNeedsInput|kUsesMemo;
+  }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                         const CuMatrixBase<BaseFloat> &in,
+                         CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &in_value,
+                        const CuMatrixBase<BaseFloat> &out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+
+  virtual void Read(std::istream &is, bool binary); // This Read function
+  // requires that the Component has the correct type.
+
+  /// Write component to stream
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual Component* Copy() const { return new MeanAllMemoComponent(*this); }
+
+  virtual void Scale(BaseFloat scale);
+  virtual void Add(BaseFloat alpha, const Component &other);
+
+  virtual void DeleteMemo(void *memo) const { delete static_cast<Memo*>(memo); }
+
+
+ private:
+
+  struct Memo {
+    CuVector<BaseFloat> count;
+    CuMatrix<BaseFloat> stats_sum;
+    CuMatrix<BaseFloat> stats_sumsq;
+    CuMatrix<BaseFloat> feat_mean;
+    CuMatrix<BaseFloat> feat_std;
+  };
+
+  void Check() const;
+  
+  void ComputeStats(void *memo);
+
+  // Dimension of the input and output.
+  int32 input_dim_;
+  int32 output_dim_;
+
+  // Used to avoid exact-zero variances, epsilon has the dimension of a
+  // covariance.
+  BaseFloat epsilon_;
+  
+  BaseFloat backprop_scale_;
+  BaseFloat mem_decay_rate_;
+
+  bool test_mode_;
+  bool output_std_;
+
+  int32 spk_num_;
+
+  // total count of stats stored by StoreStats().
+  CuVector<BaseFloat> count_;
+  // sum-of-data component of stats of input data.
+  CuMatrix<BaseFloat> stats_sum_;
+  // sum-of-squared component of stats of input data.
+  CuMatrix<BaseFloat> stats_sumsq_;
+  
+  MeanAllMemoComponent &operator = (const MeanAllMemoComponent &other); // Disallow.
+};
+
+//////////
+
+/**
+   Id2OnehotComponent just samples from a std normal dist, omitting the input:
+
+      dim               E.g. dim=1024.  Required.
+*/
+class Id2OnehotComponent: public Component {
+ public:
+  void Init(int32 dim, int32 input_dim);
+  Id2OnehotComponent(int32 dim, int32 input_dim) {
+    Init(dim, input_dim);
+  }
+  Id2OnehotComponent(): dim_(0), input_dim_(0) { }
+  explicit Id2OnehotComponent(const Id2OnehotComponent &other):
+      dim_(other.dim_), input_dim_(other.input_dim_) { }
+  virtual std::string Type() const { return "Id2OnehotComponent"; }
+  virtual int32 Properties() const {
+    return kSimpleComponent|kRandomComponent;
+  }
+  virtual int32 InputDim() const { return input_dim_; }
+  virtual int32 OutputDim() const { return dim_; }
+  virtual Component *Copy() { return new Id2OnehotComponent(*this); }
+  virtual void InitFromConfig(ConfigLine *cfl);
+  virtual void Read(std::istream &is, bool binary);
+  virtual void Write(std::ostream &os, bool binary) const;
+  virtual std::string Info() const;
+  virtual Component* Copy() const { return new Id2OnehotComponent(*this); }
+  virtual void* Propagate(const ComponentPrecomputedIndexes *indexes,
+                          const CuMatrixBase<BaseFloat> &in,
+                          CuMatrixBase<BaseFloat> *out) const;
+  virtual void Backprop(const std::string &debug_info,
+                        const ComponentPrecomputedIndexes *indexes,
+                        const CuMatrixBase<BaseFloat> &, //in_value
+                        const CuMatrixBase<BaseFloat> &, // out_value,
+                        const CuMatrixBase<BaseFloat> &out_deriv,
+                        void *memo,
+                        Component *to_update,
+                        CuMatrixBase<BaseFloat> *in_deriv) const;
+ private:
+  int32 dim_;
+  int32 input_dim_;
+  
+  Id2OnehotComponent &operator = (const Id2OnehotComponent &other); // Disallow.
 };
 
 

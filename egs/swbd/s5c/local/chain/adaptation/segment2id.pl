@@ -1,4 +1,4 @@
-($segment_file, $pdf_file, $num_file, $pos, $part_term) = @ARGV;
+($segment_file, $pdf_file, $num_file, $pos, $part_term, $offset) = @ARGV;
 
 %id_Hash;
 %utt_Hash;
@@ -10,7 +10,7 @@ if ($pos eq "")
 
 open(IN, $segment_file);
 
-$id = 0;
+if ($offset eq "") { $id = 0; } else { $id = $offset; }
 
 while ($line = <IN>)
 {
